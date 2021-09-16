@@ -1,0 +1,13 @@
+# node_modules
+node_modules
+
+# IDE's files
+.vscode
+.idea
+
+# ENV
+.env
+
+# LOCK files
+package-lock.json
+yarn.lock
