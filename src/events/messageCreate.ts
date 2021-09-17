@@ -1,4 +1,5 @@
 import { Message } from 'discord.js'
+import { createErrorEmbed } from '../embeds/error'
 import { Event } from '../structures/event'
 
 module.exports = new Event('messageCreate', (client, message: Message) => {
@@ -7,13 +8,16 @@ module.exports = new Event('messageCreate', (client, message: Message) => {
 
   const args = message.content.substring(client.prefix.length).split(/ +/)
 
-  const command = client.commands.find((cmd) =>
-    typeof cmd.name === 'string'
-      ? cmd.name === args[0]
-      : cmd.name.includes(args[0])
-  )
+  const command = client.commands.find((cmd) => {
+    const isString = typeof cmd.name === 'string'
+    return isString ? cmd.name === args[0] : cmd.name.includes(args[0])
+  })
 
-  if (!command) message.reply(`${command.name} is invalid bot command`)
+  if (!command) {
+    return message.reply({
+      embeds: [createErrorEmbed(`${args[0]} is invalid bot command`)],
+    })
+  }
 
   command.run(message, args, client)
 })

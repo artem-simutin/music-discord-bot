@@ -1,7 +1,7 @@
 import * as Discord from 'discord.js'
 import { Command } from './command'
 import * as fs from 'fs'
-import { Event } from '../structures/event'
+import { Event } from './event'
 import config from '../../config/config'
 import { QueueConstructs } from '../types/queueConstruct'
 

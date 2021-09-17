@@ -1,6 +1,6 @@
 import { Message, MessageEmbed } from 'discord.js'
 
-export const creteErrorEmbed = (text: string) => {
+export const createErrorEmbed = (text: string) => {
   const embed = new MessageEmbed()
     .setColor('#FF0000')
     .setTitle(

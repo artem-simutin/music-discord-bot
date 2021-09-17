@@ -1,4 +1,4 @@
-import { creteErrorEmbed } from '../embeds/error'
+import { createErrorEmbed } from '../embeds/error'
 import { createPauseEmbed } from '../embeds/music/pause'
 import { Command } from '../structures/command'
 
@@ -9,7 +9,7 @@ module.exports = new Command({
     if (!message.member.voice.channel)
       return message.channel.send({
         embeds: [
-          creteErrorEmbed(
+          createErrorEmbed(
             'You have to be in a voice channel to stop the music!'
           ),
         ],

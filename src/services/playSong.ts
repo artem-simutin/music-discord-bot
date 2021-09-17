@@ -1,13 +1,13 @@
 import { QueueConstructs } from '../types/queueConstruct'
-import * as ytdl from 'ytdl-core'
 import { Message } from 'discord.js'
 import { createAudioResource } from '@discordjs/voice'
-import { creteErrorEmbed } from '../embeds/error'
+import { createErrorEmbed } from '../embeds/error'
+import ytdl from 'ytdl-core'
 
 export const playSong = (queueConstruct: QueueConstructs, message: Message) => {
   if (queueConstruct.songs.length === 0) {
     message.channel.send({
-      embeds: [creteErrorEmbed('Nothing to play! :(')],
+      embeds: [createErrorEmbed('Nothing to play! :(')],
     })
   }
 

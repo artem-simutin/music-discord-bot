@@ -1,10 +1,9 @@
 /**
  * Imports
  */
+const ytdl = require('ytdl-core')
 import { Command } from '../structures/command'
-import * as ytdl from 'ytdl-core'
 import { QueueConstructs } from '../types/queueConstruct'
-import * as ytpl from 'ytpl'
 import { createPlaylistInfoEmbed } from '../embeds/music/playlistInfo'
 import { Song } from '../builders/song'
 import {
@@ -15,11 +14,13 @@ import {
 } from '@discordjs/voice'
 import { createStartPlayingEmbed } from '../embeds/music/newSong'
 import { playSong } from '../services/playSong'
-import { creteErrorEmbed } from '../embeds/error'
+import { createErrorEmbed } from '../embeds/error'
 import { createAddSongToQueue } from '../embeds/music/songToQueue'
+import ytpl from 'ytpl'
+import { createLookingForSong } from '../embeds/music/lookingForSong'
+import { createLookingForPlaylist } from '../embeds/music/lookingForPlaylist'
 
-// Create queue
-// const queue = new Map()
+let timer
 
 module.exports = new Command({
   name: ['play', 'p'],
@@ -35,7 +36,7 @@ module.exports = new Command({
     if (!voiceChannel)
       return message.channel.send({
         embeds: [
-          creteErrorEmbed(
+          createErrorEmbed(
             'You have to be in a voice channel to play the music!'
           ),
         ],
@@ -48,7 +49,7 @@ module.exports = new Command({
     if (!permissions.has('CONNECT') || !permissions.has('SPEAK')) {
       return message.channel.send({
         embeds: [
-          creteErrorEmbed(
+          createErrorEmbed(
             'I need the permissions to join and speak in your voice channel!'
           ),
         ],
@@ -61,14 +62,26 @@ module.exports = new Command({
 
     // Check is it playlist
     if (isPlaylist) {
-      // Get playlist info
-      pl = await ytpl(args[1])
+      try {
+        message.channel.send({ embeds: [createLookingForPlaylist(args[1])] })
+        // Get playlist info
+        pl = await ytpl(args[1])
+      } catch (error) {
+        return message.reply({
+          embeds: [createErrorEmbed('No such playlist!')],
+        })
+      }
     } else {
-      // Get song info
-      const songInfo = await ytdl.getInfo(args[1])
+      message.channel.send({ embeds: [createLookingForSong(args[1])] })
+      try {
+        // Get song info
+        const songInfo = await ytdl.getInfo(args[1])
 
-      // Crete song object
-      song = new Song(songInfo)
+        // Crete song object
+        song = new Song(songInfo)
+      } catch (error) {
+        return message.reply({ embeds: [createErrorEmbed('No such video!')] })
+      }
     }
 
     if (!serverQueue) {
@@ -134,10 +147,12 @@ module.exports = new Command({
           queueConstruct.player = createAudioPlayer()
         }
 
-        // On connection try to play some song
+        /**
+         * On connection try to play some song
+         */
         queueConstruct.connection.on(VoiceConnectionStatus.Ready, () => {
           // If it isn't playlist => send song info
-          if (!isPlaylist) {
+          if (!isPlaylist && song && song.title && message) {
             queueConstruct.textChannel.send({
               embeds: [createStartPlayingEmbed(song, message)],
             })
@@ -155,16 +170,19 @@ module.exports = new Command({
            */
           queueConstruct.player.on(AudioPlayerStatus.Idle, () => {
             if (queueConstruct.songs.length <= 1) {
-              console.log('will disconnect')
-
               // Set empty songs array
               queueConstruct.songs = []
 
               // Disconnect it if bot is in idle 5 min
-              setTimeout(() => {
-                queueConstruct.connection.destroy()
-                // Clear queue
-                client.queue.delete(message.guild.id)
+              timer = setTimeout(() => {
+                if (queueConstruct.connection) {
+                  queueConstruct.connection.destroy()
+                }
+
+                if (client.queue) {
+                  // Clear queue
+                  client.queue.delete(message.guild.id)
+                }
                 return
               }, 300000)
             } else {
@@ -174,14 +192,36 @@ module.exports = new Command({
             }
           })
         })
+
+        /**
+         * On disconnect
+         */
+        queueConstruct.connection.on(VoiceConnectionStatus.Destroyed, () => {
+          console.log('Disconnected')
+
+          // Set empty songs array
+          queueConstruct.songs = []
+
+          if (queueConstruct.connection) {
+            // Clear connection
+            queueConstruct.connection.destroy()
+          }
+
+          if (client.queue) {
+            // Clear queue
+            client.queue.delete(message.guild.id)
+          }
+          return
+        })
       } catch (error) {
         console.error(error)
         serverQueue.textChannel.send({
-          embeds: [creteErrorEmbed(error.message)],
+          embeds: [createErrorEmbed(error.message)],
         })
       }
     } else {
-      if (isPlaylist) {
+      if (serverQueue.songs.length > 0 && isPlaylist) {
+        clearInterval(timer)
         // Send the message about playlist
         serverQueue.textChannel.send({
           embeds: [createPlaylistInfoEmbed(pl, message)],
@@ -192,21 +232,52 @@ module.exports = new Command({
           return new Song(await ytdl.getInfo(item.shortUrl))
         })
 
-        Promise.all(promises).then((data) => {
-          serverQueue.songs = [...serverQueue.songs, ...data]
-        })
+        Promise.all(promises)
+          .then((data) => {
+            serverQueue.songs = [...serverQueue.songs, ...data]
+          })
+          .then(() => {
+            playSong(serverQueue, message)
+          })
       }
 
-      if (serverQueue.songs.length === 0) {
+      if (serverQueue.songs.length === 0 && isPlaylist) {
+        clearInterval(timer)
+        if (isPlaylist) {
+          // Send the message about playlist
+          serverQueue.textChannel.send({
+            embeds: [createPlaylistInfoEmbed(pl, message)],
+          })
+
+          // Get links from all items and
+          const promises = pl.items.map(async (item) => {
+            return new Song(await ytdl.getInfo(item.shortUrl))
+          })
+
+          Promise.all(promises)
+            .then((data) => {
+              serverQueue.songs = [...serverQueue.songs, ...data]
+            })
+            .then(() => playSong(serverQueue, message))
+
+          return
+        }
+      }
+
+      if (serverQueue.songs.length === 0 && !isPlaylist) {
+        clearInterval(timer)
         serverQueue.songs.push(song)
-        serverQueue.textChannel.send({
-          embeds: [createStartPlayingEmbed(song, message)],
-        })
-        console.log('Going next')
+        if (song && song.title && message) {
+          serverQueue.textChannel.send({
+            embeds: [createStartPlayingEmbed(song, message)],
+          })
+        }
+
         playSong(serverQueue, message)
         return
       }
 
+      clearInterval(timer)
       serverQueue.songs.push(song)
       return serverQueue.textChannel.send({
         embeds: [createAddSongToQueue(song, message, serverQueue.songs)],
