@@ -1,5 +1,5 @@
 import { createErrorEmbed } from '../embeds/error'
-import { createPauseEmbed } from '../embeds/music/pause'
+import { AudioPlayerStatus } from '@discordjs/voice'
 import { createUnPauseEmbed } from '../embeds/music/unpause'
 import { Command } from '../structures/command'
 
@@ -29,10 +29,16 @@ module.exports = new Command({
       return
     }
 
-    message.channel.send({
-      embeds: [createUnPauseEmbed(queueConstruct.songs[0], message)],
-    })
-
     queueConstruct.player.unpause()
+
+    message.channel.send({
+      embeds: [
+        createUnPauseEmbed(
+          queueConstruct.songs[0],
+          message,
+          queueConstruct.player.state.status === AudioPlayerStatus.Paused
+        ),
+      ],
+    })
   },
 })

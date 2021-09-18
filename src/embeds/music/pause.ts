@@ -1,7 +1,11 @@
 import { Message, MessageEmbed } from 'discord.js'
 import { Song } from '../../builders/song'
 
-export const createPauseEmbed = (song: Song, message: Message) => {
+export const createPauseEmbed = (
+  song: Song,
+  message: Message,
+  isPaused: boolean = false
+) => {
   let authorImage: string | undefined = undefined
 
   if (message && message.author && message.author.avatarURL()) {
@@ -10,7 +14,11 @@ export const createPauseEmbed = (song: Song, message: Message) => {
 
   const embed = new MessageEmbed()
     .setColor('#FFE895')
-    .setTitle(':pause_button: ' + song.title)
+    .setTitle(
+      !isPaused
+        ? `:pause_button: ${song.title}`
+        : ':open_hands: Song has already paused!'
+    )
     .setURL(song.url)
     .setAuthor('Paused', authorImage)
     .setThumbnail(song.thumbnail.url)

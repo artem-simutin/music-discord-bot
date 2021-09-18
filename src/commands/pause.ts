@@ -1,3 +1,4 @@
+import { AudioPlayerStatus } from '@discordjs/voice'
 import { createErrorEmbed } from '../embeds/error'
 import { createPauseEmbed } from '../embeds/music/pause'
 import { Command } from '../structures/command'
@@ -21,10 +22,6 @@ module.exports = new Command({
       return message.reply('No music bot on chanel!')
     }
 
-    message.channel.send({
-      embeds: [createPauseEmbed(queueConstruct.songs[0], message)],
-    })
-
     if (!queueConstruct.player) {
       message.reply({
         embeds: [createErrorEmbed('Cant pause song. No player!')],
@@ -33,5 +30,15 @@ module.exports = new Command({
     }
 
     queueConstruct.player.pause()
+
+    message.channel.send({
+      embeds: [
+        createPauseEmbed(
+          queueConstruct.songs[0],
+          message,
+          queueConstruct.player.state.status === AudioPlayerStatus.Paused
+        ),
+      ],
+    })
   },
 })
