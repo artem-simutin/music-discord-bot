@@ -1,7 +1,7 @@
 // converts number to string representation with K and M.
 // toFixed(d) returns a string that has exactly 'd' digits
 // after the decimal place, rounding if necessary.
-export const formatViews = (num: number | string): string => {
+export const formatToKMB = (num: number | string): string => {
   const count = Number(num)
 
   // If count is not number => return no info

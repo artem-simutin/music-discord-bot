@@ -1,7 +1,7 @@
 import { Message, MessageEmbed } from 'discord.js'
 import { parseDuration } from '../../services/parceDuration'
 import { Song } from '../../builders/song'
-import { formatViews } from '../../services/viewsConverter'
+import { formatToKMB } from '../../services/formatToKMB'
 
 export const createStartPlayingEmbed = (song: Song, message: Message) => {
   let authorImage: string | undefined = undefined
@@ -24,17 +24,17 @@ export const createStartPlayingEmbed = (song: Song, message: Message) => {
       },
       {
         name: ':thumbsup: Likes ',
-        value: song.likes ? song.likes.toString() : 'No information',
+        value: song.likes ? formatToKMB(song.likes) : 'No information',
         inline: true,
       },
       {
         name: ':thumbsdown: Dislikes',
-        value: song.dislikes ? song.dislikes.toString() : 'No information',
+        value: song.dislikes ? formatToKMB(song.dislikes) : 'No information',
         inline: true,
       },
       {
         name: ':eye:  Views',
-        value: formatViews(song.views),
+        value: formatToKMB(song.views),
         inline: true,
       }
     )
