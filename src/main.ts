@@ -1,7 +1,10 @@
 console.clear()
 
+import { generateDependencyReport } from '@discordjs/voice'
 import config from '../config/config'
 import { Client } from './structures/client'
+
+console.log(generateDependencyReport())
 
 const client = new Client()
 

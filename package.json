@@ -7,7 +7,7 @@
   "license": "ISC",
   "scripts": {
     "preinstall": "npm install node@16.9.1 --save-exact && npm install pm2 -g",
-    "start": "pm2 start build/src/main.js --attach",
+    "start": "PORT=3000 pm2 start build/src/main.js --attach",
     "dev": "nodemon",
     "prebuild": "rm -rf build",
     "build": "tsc"
@@ -23,6 +23,7 @@
     "inversify": "^5.1.1",
     "libsodium": "^0.7.9",
     "libsodium-wrappers": "^0.7.9",
+    "opusscript": "^0.0.8",
     "reflect-metadata": "^0.1.13",
     "sodium": "^3.0.2",
     "ytdl-core": "^4.9.1",
