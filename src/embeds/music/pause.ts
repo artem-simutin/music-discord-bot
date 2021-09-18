@@ -14,13 +14,12 @@ export const createPauseEmbed = (
 
   const embed = new MessageEmbed()
     .setColor('#FFE895')
-    .setTitle(
-      !isPaused
-        ? `:pause_button: ${song.title}`
-        : ':open_hands: Song has already paused!'
-    )
+    .setTitle(!isPaused ? `:pause_button: ${song.title}` : 'Nope')
     .setURL(song.url)
-    .setAuthor('Paused', authorImage)
+    .setAuthor(
+      !isPaused ? 'Paused' : ':open_hands: Song has already paused!',
+      authorImage
+    )
     .setThumbnail(song.thumbnail.url)
     .setTimestamp()
     .setFooter('Powered by DELAMAIN')
