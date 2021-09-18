@@ -21,12 +21,12 @@ module.exports = new Command({
       return message.reply('No music bot on chanel!')
     }
 
-    message.channel.send({ embeds: [createLoopEmbed()] })
-
     if (queueConstruct.loop) {
       queueConstruct.loop = false
+      message.channel.send({ embeds: [createLoopEmbed(false)] })
     } else {
       queueConstruct.loop = true
+      message.channel.send({ embeds: [createLoopEmbed(true)] })
     }
 
     return

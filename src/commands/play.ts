@@ -210,6 +210,11 @@ module.exports = new Command({
           }
 
           queueConstruct.player.on(AudioPlayerStatus.Idle, () => {
+            if (queueConstruct.loop) {
+              playSong(queueConstruct, message)
+              return
+            }
+
             if (queueConstruct.songs.length <= 1) {
               // Set empty songs array
               queueConstruct.songs = []
@@ -228,7 +233,7 @@ module.exports = new Command({
               }, 300000)
             } else {
               // Removes first song in songs queue
-              !queueConstruct.loop && queueConstruct.songs.shift()
+              queueConstruct.songs.shift()
               playSong(queueConstruct, message)
             }
           })

@@ -1,4 +1,3 @@
-import { GuildMember } from 'discord.js'
 import { createDisconnectEmbed } from '../embeds/disconnect'
 import { createErrorEmbed } from '../embeds/error'
 import { Command } from '../structures/command'
