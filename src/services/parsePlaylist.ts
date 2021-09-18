@@ -18,11 +18,6 @@ export const parsePlaylist = (
         return
       }
 
-      // Send the message about playlist
-      queueConstruct.textChannel.send({
-        embeds: [createPlaylistInfoEmbed(pl, message)],
-      })
-
       // Get links from all items and
       const promises = pl.items.map(async (item) => {
         try {
@@ -49,6 +44,13 @@ export const parsePlaylist = (
           ...queueConstruct.songs,
           ...(filteredSongs as Song[]),
         ]
+
+        // Send the message about playlist
+        queueConstruct.textChannel.send({
+          embeds: [
+            createPlaylistInfoEmbed(pl, filteredSongs as Song[], message),
+          ],
+        })
 
         res(false)
       })

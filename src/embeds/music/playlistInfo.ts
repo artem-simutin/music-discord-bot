@@ -2,9 +2,11 @@ import { Message, MessageEmbed } from 'discord.js'
 
 import { parseDuration } from '../../services/parceDuration'
 import ytpl = require('ytpl')
+import { Song } from '../../builders/song'
 
 export const createPlaylistInfoEmbed = (
   playlist: ytpl.Result,
+  songs: Song[],
   message: Message
 ) => {
   let authorImage: string | undefined = undefined
@@ -13,8 +15,8 @@ export const createPlaylistInfoEmbed = (
     authorImage = message.author.avatarURL() as string
   }
 
-  const seconds = playlist.items
-    .map((item) => item.durationSec)
+  const seconds = songs
+    .map((item) => parseInt(item.length))
     .reduce((acc, current) => current && (acc ? acc + current : 0 + current), 0)
 
   const embed = new MessageEmbed()
@@ -31,7 +33,7 @@ export const createPlaylistInfoEmbed = (
       },
       {
         name: ':headphones: Songs count:',
-        value: playlist.items.length.toString(),
+        value: songs.length.toString(),
         inline: true,
       }
     )
