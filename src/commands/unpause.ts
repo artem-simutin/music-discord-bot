@@ -29,8 +29,6 @@ module.exports = new Command({
       return
     }
 
-    queueConstruct.player.unpause()
-
     message.channel.send({
       embeds: [
         createUnPauseEmbed(
@@ -40,5 +38,9 @@ module.exports = new Command({
         ),
       ],
     })
+
+    queueConstruct.player.unpause()
+
+    return
   },
 })

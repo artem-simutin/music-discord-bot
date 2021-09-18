@@ -4,7 +4,7 @@ import { Song } from '../../builders/song'
 export const createPauseEmbed = (
   song: Song,
   message: Message,
-  isNotPaused: boolean = true
+  isPaused: boolean = true
 ) => {
   let authorImage: string | undefined = undefined
 
@@ -14,14 +14,9 @@ export const createPauseEmbed = (
 
   const embed = new MessageEmbed()
     .setColor('#FFE895')
-    .setTitle(
-      !isNotPaused ? `:pause_button: ${song.title}` : ':open_hands: Nope'
-    )
+    .setTitle(!isPaused ? `:pause_button: ${song.title}` : ':open_hands: Nope')
     .setURL(song.url)
-    .setAuthor(
-      !isNotPaused ? 'Paused' : 'Song has already paused!',
-      authorImage
-    )
+    .setAuthor(!isPaused ? 'Paused' : 'Song has already paused!', authorImage)
     .setThumbnail(song.thumbnail.url)
     .setTimestamp()
     .setFooter('Powered by DELAMAIN')
