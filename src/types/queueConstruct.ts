@@ -12,4 +12,5 @@ export interface QueueConstructs {
   volume: number
   playing: boolean
   loading?: Promise<boolean>
+  loop: boolean
 }

@@ -115,6 +115,7 @@ module.exports = new Command({
         volume: 5,
         playing: true,
         loading: new Promise((res) => res(true)),
+        loop: false,
       }
 
       // Setting the queue using our contract
@@ -227,14 +228,14 @@ module.exports = new Command({
               }, 300000)
             } else {
               // Removes first song in songs queue
-              queueConstruct.songs.shift()
+              !queueConstruct.loop && queueConstruct.songs.shift()
               playSong(queueConstruct, message)
             }
           })
         })
 
         /**
-         * On disconnect
+         * On destroy
          */
         queueConstruct.connection.on(VoiceConnectionStatus.Destroyed, () => {
           // Set empty songs array
@@ -245,6 +246,25 @@ module.exports = new Command({
             message.guild && client.queue.delete(message.guild.id)
           }
           return
+        })
+
+        /**
+         * On disconnect
+         */
+        queueConstruct.connection.on(VoiceConnectionStatus.Disconnected, () => {
+          console.log('disconnected manually')
+
+          // Set empty songs array
+          queueConstruct.songs = []
+
+          if (queueConstruct.connection) {
+            queueConstruct.connection.destroy()
+          }
+
+          if (client.queue) {
+            // Clear queue
+            message.guild && client.queue.delete(message.guild.id)
+          }
         })
       } catch (error) {
         console.error(error)
