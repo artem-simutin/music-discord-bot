@@ -1,6 +1,7 @@
 import { Message, MessageEmbed } from 'discord.js'
 import { parseDuration } from '../../services/parceDuration'
 import { Song } from '../../builders/song'
+import { formatViews } from '../../services/viewsConverter'
 
 export const createStartPlayingEmbed = (song: Song, message: Message) => {
   let authorImage: string | undefined = undefined
@@ -29,6 +30,11 @@ export const createStartPlayingEmbed = (song: Song, message: Message) => {
       {
         name: ':thumbsdown: Dislikes',
         value: song.dislikes ? song.dislikes.toString() : 'No information',
+        inline: true,
+      },
+      {
+        name: ':eye:  Views',
+        value: formatViews(song.views),
         inline: true,
       }
     )

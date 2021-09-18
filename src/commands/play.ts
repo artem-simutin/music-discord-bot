@@ -19,6 +19,7 @@ import { createAddSongToQueue } from '../embeds/music/songToQueue'
 import ytpl from 'ytpl'
 import { createLookingForSong } from '../embeds/music/lookingForSong'
 import { createLookingForPlaylist } from '../embeds/music/lookingForPlaylist'
+import { parsePlaylist } from '../services/parsePlaylist'
 
 let timer: NodeJS.Timeout
 
@@ -122,33 +123,7 @@ module.exports = new Command({
       client.queue.set(message.guild.id, queueConstruct)
 
       if (isPlaylist) {
-        const promise = new Promise<boolean>((res, rej) => {
-          try {
-            if (!pl) {
-              console.error('No playlist')
-              return
-            }
-
-            // Send the message about playlist
-            queueConstruct.textChannel.send({
-              embeds: [createPlaylistInfoEmbed(pl, message)],
-            })
-
-            // Get links from all items and
-            const promises = pl.items.map(async (item) => {
-              return new Song(await ytdl.getInfo(item.shortUrl))
-            })
-
-            // Sets songs only when all items info will be ready
-            Promise.all(promises).then((data) => {
-              res(false)
-              queueConstruct.songs = [...queueConstruct.songs, ...data]
-            })
-          } catch (error) {
-            rej(true)
-            console.error(error)
-          }
-        })
+        const promise = parsePlaylist(queueConstruct, pl, message)
 
         // Set promise for loading
         queueConstruct.loading = promise
@@ -283,23 +258,7 @@ module.exports = new Command({
         }
 
         clearInterval(timer)
-        // Send the message about playlist
-        serverQueue.textChannel.send({
-          embeds: [createPlaylistInfoEmbed(pl, message)],
-        })
-
-        // Get links from all items and
-        const promises = pl.items.map(async (item) => {
-          return new Song(await ytdl.getInfo(item.shortUrl))
-        })
-
-        Promise.all(promises)
-          .then((data) => {
-            serverQueue.songs = [...serverQueue.songs, ...data]
-          })
-          .then(() => {
-            playSong(serverQueue, message)
-          })
+        parsePlaylist(serverQueue, pl, message)
       }
 
       if (serverQueue.songs.length === 0 && isPlaylist) {
@@ -310,23 +269,7 @@ module.exports = new Command({
 
         clearInterval(timer)
         if (isPlaylist) {
-          // Send the message about playlist
-          serverQueue.textChannel.send({
-            embeds: [createPlaylistInfoEmbed(pl, message)],
-          })
-
-          // Get links from all items and
-          const promises = pl.items.map(async (item) => {
-            return new Song(await ytdl.getInfo(item.shortUrl))
-          })
-
-          Promise.all(promises)
-            .then((data) => {
-              serverQueue.songs = [...serverQueue.songs, ...data]
-            })
-            .then(() => playSong(serverQueue, message))
-
-          return
+          parsePlaylist(serverQueue, pl, message)
         }
       }
 

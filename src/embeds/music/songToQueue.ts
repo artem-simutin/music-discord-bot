@@ -1,6 +1,7 @@
 import { Message, MessageEmbed } from 'discord.js'
 import { parseDuration } from '../../services/parceDuration'
 import { Song } from '../../builders/song'
+import { formatViews } from '../../services/viewsConverter'
 
 export const createAddSongToQueue = (
   song: Song,
@@ -33,6 +34,11 @@ export const createAddSongToQueue = (
       {
         name: ':thumbsdown: Dislikes',
         value: song.dislikes ? song.dislikes.toString() : 'No information',
+        inline: true,
+      },
+      {
+        name: ':eye:  Views',
+        value: formatViews(song.views),
         inline: true,
       },
       {

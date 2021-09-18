@@ -5,7 +5,9 @@ export const createLoopEmbed = (on: boolean) => {
     .setColor('#80E8FF')
     .setTitle(on ? ':repeat_one: Looped!' : ':repeat_one: Loop is disabled!')
     .setDescription(
-      'Now song will plays infinite times! Did you really want that?'
+      on
+        ? 'Now song will plays infinite times! Did you really want that?'
+        : 'Now songs will switches!'
     )
     .setTimestamp()
     .setFooter('Powered by DELAMAIN')
