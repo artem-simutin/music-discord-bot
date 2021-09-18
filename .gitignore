@@ -11,3 +11,11 @@ node_modules
 # LOCK files
 package-lock.json
 yarn.lock
+
+# Logs
+yarn-error.log
+
+
+# Build
+build
+dist
