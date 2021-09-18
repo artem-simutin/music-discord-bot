@@ -23,6 +23,12 @@ module.exports = new Command({
 
     message.channel.send({ embeds: [createLoopEmbed()] })
 
-    queueConstruct.loop = true
+    if (queueConstruct.loop) {
+      queueConstruct.loop = false
+    } else {
+      queueConstruct.loop = true
+    }
+
+    return
   },
 })
