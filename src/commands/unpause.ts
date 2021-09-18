@@ -4,10 +4,10 @@ import { createUnPauseEmbed } from '../embeds/music/unpause'
 import { Command } from '../structures/command'
 
 module.exports = new Command({
-  name: 'unpause',
+  name: ['unpause', 'resume'],
   description: 'Unpause player',
   run: async (message, args, client) => {
-    if (!message.member.voice.channel)
+    if (message.member && !message.member.voice.channel)
       return message.channel.send({
         embeds: [
           createErrorEmbed(
@@ -16,10 +16,17 @@ module.exports = new Command({
         ],
       })
 
-    const queueConstruct = client.queue.get(message.guild.id)
+    const queueConstruct = message.guild && client.queue.get(message.guild.id)
 
     if (!queueConstruct) {
       return message.reply('No music bot on chanel!')
+    }
+
+    if (!queueConstruct.player) {
+      message.reply({
+        embeds: [createErrorEmbed("Can't unpause song. No player!")],
+      })
+      return
     }
 
     message.channel.send({

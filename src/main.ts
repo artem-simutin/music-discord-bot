@@ -5,4 +5,12 @@ import { Client } from './structures/client'
 
 const client = new Client()
 
-client.start(config.token)
+console.log(process.env.BUILD_MODE)
+
+if (config.token) {
+  client.start(config.token)
+} else {
+  console.error(
+    'Please, provide bot token as env variable (info: .env.example)'
+  )
+}

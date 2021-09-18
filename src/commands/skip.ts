@@ -7,7 +7,7 @@ module.exports = new Command({
   name: 'skip',
   description: 'Skip current song',
   run: async (message, args, client) => {
-    if (!message.member.voice.channel)
+    if (message.member && !message.member.voice.channel)
       return message.channel.send({
         embeds: [
           createErrorEmbed(
@@ -16,7 +16,7 @@ module.exports = new Command({
         ],
       })
 
-    const queueConstruct = client.queue.get(message.guild.id)
+    const queueConstruct = message.guild && client.queue.get(message.guild.id)
 
     if (!queueConstruct) {
       return message.reply('No music bot on chanel!')
@@ -27,6 +27,13 @@ module.exports = new Command({
     })
 
     queueConstruct.songs.shift()
+
+    if (!queueConstruct.player) {
+      message.reply({
+        embeds: [createErrorEmbed("Can't skip song. No player!")],
+      })
+      return
+    }
 
     if (queueConstruct.songs.length === 0) {
       queueConstruct.player.stop()

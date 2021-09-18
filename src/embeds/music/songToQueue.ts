@@ -7,11 +7,17 @@ export const createAddSongToQueue = (
   message: Message,
   songs: Song[]
 ) => {
+  let authorImage: string | undefined = undefined
+
+  if (message && message.author && message.author.avatarURL()) {
+    authorImage = message.author.avatarURL() as string
+  }
+
   const embed = new MessageEmbed()
     .setColor('#00FF47')
     .setTitle(song.title)
     .setURL(song.url)
-    .setAuthor('Song added to queue', message.author.avatarURL())
+    .setAuthor('Song added to queue', authorImage)
     .setThumbnail(song.thumbnail.url)
     .addFields(
       {
@@ -19,10 +25,14 @@ export const createAddSongToQueue = (
         value: parseDuration(song.length),
         inline: true,
       },
-      { name: ':thumbsup: Likes ', value: song.likes.toString(), inline: true },
+      {
+        name: ':thumbsup: Likes ',
+        value: song.likes ? song.likes.toString() : 'No information',
+        inline: true,
+      },
       {
         name: ':thumbsdown: Dislikes',
-        value: song.dislikes.toString(),
+        value: song.dislikes ? song.dislikes.toString() : 'No information',
         inline: true,
       },
       {

@@ -26,7 +26,20 @@ export const playSong = (queueConstruct: QueueConstructs, message: Message) => {
     })
   }
 
-  queueConstruct.resource.volume.setVolume(100 / queueConstruct.volume / 25)
+  queueConstruct.resource.volume &&
+    queueConstruct.resource.volume.setVolume(100 / queueConstruct.volume / 25)
+
+  if (!queueConstruct.connection) {
+    message.reply({
+      embeds: [createErrorEmbed("I am isn't on voice channel!")],
+    })
+    return
+  }
+
+  if (!queueConstruct.player) {
+    console.error('No player')
+    return
+  }
 
   queueConstruct.connection.subscribe(queueConstruct.player)
   queueConstruct.player.play(queueConstruct.resource)

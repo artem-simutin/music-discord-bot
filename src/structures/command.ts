@@ -1,4 +1,4 @@
-import { Message, Interaction } from 'discord.js'
+import { Message, Interaction, MessageAttachment } from 'discord.js'
 import { Client } from './client'
 
 export interface CommandOptions {
@@ -10,7 +10,7 @@ export interface CommandOptions {
 export class Command {
   name: string | string[]
   description: string
-  run: (message: Message | Interaction, args: string[], client: Client) => void
+  run: (message: Message, args: string[], client: Client) => void
 
   constructor(options: CommandOptions) {
     this.name = options.name

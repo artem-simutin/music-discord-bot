@@ -3,11 +3,17 @@ import { parseDuration } from '../../services/parceDuration'
 import { Song } from '../../builders/song'
 
 export const createStartPlayingEmbed = (song: Song, message: Message) => {
+  let authorImage: string | undefined = undefined
+
+  if (message && message.author && message.author.avatarURL()) {
+    authorImage = message.author.avatarURL() as string
+  }
+
   const embed = new MessageEmbed()
     .setColor('#006BA8')
     .setTitle(song.title)
     .setURL(song.url)
-    .setAuthor('Started playing', message.author.avatarURL())
+    .setAuthor('Started playing', authorImage)
     .setThumbnail(song.thumbnail.url)
     .addFields(
       {
@@ -15,10 +21,14 @@ export const createStartPlayingEmbed = (song: Song, message: Message) => {
         value: parseDuration(song.length),
         inline: true,
       },
-      { name: ':thumbsup: Likes ', value: song.likes.toString(), inline: true },
+      {
+        name: ':thumbsup: Likes ',
+        value: song.likes ? song.likes.toString() : 'No information',
+        inline: true,
+      },
       {
         name: ':thumbsdown: Dislikes',
-        value: song.dislikes.toString(),
+        value: song.dislikes ? song.dislikes.toString() : 'No information',
         inline: true,
       }
     )

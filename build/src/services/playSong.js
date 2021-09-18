@@ -1,12 +1,10 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.playSong = void 0;
+const tslib_1 = require("tslib");
 const voice_1 = require("@discordjs/voice");
 const error_1 = require("../embeds/error");
-const ytdl_core_1 = __importDefault(require("ytdl-core"));
+const ytdl_core_1 = (0, tslib_1.__importDefault)(require("ytdl-core"));
 const playSong = (queueConstruct, message) => {
     if (queueConstruct.songs.length === 0) {
         message.channel.send({
@@ -25,7 +23,18 @@ const playSong = (queueConstruct, message) => {
             inlineVolume: true,
         });
     }
-    queueConstruct.resource.volume.setVolume(100 / queueConstruct.volume / 25);
+    queueConstruct.resource.volume &&
+        queueConstruct.resource.volume.setVolume(100 / queueConstruct.volume / 25);
+    if (!queueConstruct.connection) {
+        message.reply({
+            embeds: [(0, error_1.createErrorEmbed)("I am isn't on voice channel!")],
+        });
+        return;
+    }
+    if (!queueConstruct.player) {
+        console.error('No player');
+        return;
+    }
     queueConstruct.connection.subscribe(queueConstruct.player);
     queueConstruct.player.play(queueConstruct.resource);
 };

@@ -1,17 +1,6 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+const tslib_1 = require("tslib");
 /**
  * Imports
  */
@@ -24,15 +13,24 @@ const newSong_1 = require("../embeds/music/newSong");
 const playSong_1 = require("../services/playSong");
 const error_1 = require("../embeds/error");
 const songToQueue_1 = require("../embeds/music/songToQueue");
-const ytpl_1 = __importDefault(require("ytpl"));
-// Create queue
-// const queue = new Map()
+const ytpl_1 = (0, tslib_1.__importDefault)(require("ytpl"));
+const lookingForSong_1 = require("../embeds/music/lookingForSong");
+const lookingForPlaylist_1 = require("../embeds/music/lookingForPlaylist");
+let timer;
 module.exports = new command_1.Command({
     name: ['play', 'p'],
     description: 'Plays song from youtube url',
-    run: (message, args, client) => __awaiter(void 0, void 0, void 0, function* () {
+    run: async (message, args, client) => {
+        if (!message.member) {
+            console.error('No message member');
+            return;
+        }
         // Take voice chanel
         const voiceChannel = message.member.voice.channel;
+        if (!message.guild) {
+            console.error('No message guild');
+            return;
+        }
         // Get server queue
         const serverQueue = client.queue.get(message.guild.id);
         // If no voice chanel found
@@ -42,10 +40,15 @@ module.exports = new command_1.Command({
                     (0, error_1.createErrorEmbed)('You have to be in a voice channel to play the music!'),
                 ],
             });
+        if (!message.client.user) {
+            console.error('No message client user');
+            return;
+        }
         // Get permissions
         const permissions = voiceChannel.permissionsFor(message.client.user);
         // Check, has bot needed permissions
-        if (!permissions.has('CONNECT') || !permissions.has('SPEAK')) {
+        if (permissions &&
+            (!permissions.has('CONNECT') || !permissions.has('SPEAK'))) {
             return message.channel.send({
                 embeds: [
                     (0, error_1.createErrorEmbed)('I need the permissions to join and speak in your voice channel!'),
@@ -57,14 +60,28 @@ module.exports = new command_1.Command({
         let song = null;
         // Check is it playlist
         if (isPlaylist) {
-            // Get playlist info
-            pl = yield (0, ytpl_1.default)(args[1]);
+            try {
+                message.channel.send({ embeds: [(0, lookingForPlaylist_1.createLookingForPlaylist)(args[1])] });
+                // Get playlist info
+                pl = await (0, ytpl_1.default)(args[1]);
+            }
+            catch (error) {
+                return message.reply({
+                    embeds: [(0, error_1.createErrorEmbed)('No such playlist!')],
+                });
+            }
         }
         else {
-            // Get song info
-            const songInfo = yield ytdl.getInfo(args[1]);
-            // Crete song object
-            song = new song_1.Song(songInfo);
+            message.channel.send({ embeds: [(0, lookingForSong_1.createLookingForSong)(args[1])] });
+            try {
+                // Get song info
+                const songInfo = await ytdl.getInfo(args[1]);
+                // Crete song object
+                song = new song_1.Song(songInfo);
+            }
+            catch (error) {
+                return message.reply({ embeds: [(0, error_1.createErrorEmbed)('No such video!')] });
+            }
         }
         if (!serverQueue) {
             const queueConstruct = {
@@ -83,14 +100,18 @@ module.exports = new command_1.Command({
             if (isPlaylist) {
                 const promise = new Promise((res, rej) => {
                     try {
+                        if (!pl) {
+                            console.error('No playlist');
+                            return;
+                        }
                         // Send the message about playlist
                         queueConstruct.textChannel.send({
                             embeds: [(0, playlistInfo_1.createPlaylistInfoEmbed)(pl, message)],
                         });
                         // Get links from all items and
-                        const promises = pl.items.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-                            return new song_1.Song(yield ytdl.getInfo(item.shortUrl));
-                        }));
+                        const promises = pl.items.map(async (item) => {
+                            return new song_1.Song(await ytdl.getInfo(item.shortUrl));
+                        });
                         // Sets songs only when all items info will be ready
                         Promise.all(promises).then((data) => {
                             res(false);
@@ -106,6 +127,13 @@ module.exports = new command_1.Command({
                 queueConstruct.loading = promise;
             }
             else {
+                if (!song) {
+                    return message.reply({
+                        embeds: [
+                            (0, error_1.createErrorEmbed)('Something went wrong while playing the song!'),
+                        ],
+                    });
+                }
                 // Pushing the song to our songs array
                 queueConstruct.songs.push(song);
             }
@@ -122,7 +150,9 @@ module.exports = new command_1.Command({
                 if (!queueConstruct.player) {
                     queueConstruct.player = (0, voice_1.createAudioPlayer)();
                 }
-                // On connection try to play some song
+                /**
+                 * On connection try to play some song
+                 */
                 queueConstruct.connection.on(voice_1.VoiceConnectionStatus.Ready, () => {
                     // If it isn't playlist => send song info
                     if (!isPlaylist && song && song.title && message) {
@@ -131,20 +161,31 @@ module.exports = new command_1.Command({
                         });
                     }
                     // When all songs will be loaded => start playing
-                    queueConstruct.loading.then((bool) => !bool && isPlaylist && (0, playSong_1.playSong)(queueConstruct, message));
+                    queueConstruct.loading &&
+                        queueConstruct.loading.then((bool) => !bool && isPlaylist && (0, playSong_1.playSong)(queueConstruct, message));
                     !isPlaylist && (0, playSong_1.playSong)(queueConstruct, message);
                     /**
                      * Player idle handler
                      */
+                    if (!queueConstruct.player) {
+                        message.channel.send({
+                            embeds: [(0, error_1.createErrorEmbed)('No music player')],
+                        });
+                        return;
+                    }
                     queueConstruct.player.on(voice_1.AudioPlayerStatus.Idle, () => {
                         if (queueConstruct.songs.length <= 1) {
                             // Set empty songs array
                             queueConstruct.songs = [];
                             // Disconnect it if bot is in idle 5 min
-                            setTimeout(() => {
-                                queueConstruct.connection.destroy();
-                                // Clear queue
-                                client.queue.delete(message.guild.id);
+                            timer = setTimeout(() => {
+                                if (queueConstruct.connection) {
+                                    queueConstruct.connection.destroy();
+                                }
+                                if (client.queue) {
+                                    // Clear queue
+                                    message.guild && client.queue.delete(message.guild.id);
+                                }
                                 return;
                             }, 300000);
                         }
@@ -155,24 +196,39 @@ module.exports = new command_1.Command({
                         }
                     });
                 });
+                /**
+                 * On disconnect
+                 */
+                queueConstruct.connection.on(voice_1.VoiceConnectionStatus.Destroyed, () => {
+                    // Set empty songs array
+                    queueConstruct.songs = [];
+                    if (client.queue) {
+                        // Clear queue
+                        message.guild && client.queue.delete(message.guild.id);
+                    }
+                    return;
+                });
             }
             catch (error) {
                 console.error(error);
-                serverQueue.textChannel.send({
-                    embeds: [(0, error_1.createErrorEmbed)(error.message)],
-                });
+                return;
             }
         }
         else {
             if (serverQueue.songs.length > 0 && isPlaylist) {
+                if (!pl) {
+                    console.error('No playlist');
+                    return;
+                }
+                clearInterval(timer);
                 // Send the message about playlist
                 serverQueue.textChannel.send({
                     embeds: [(0, playlistInfo_1.createPlaylistInfoEmbed)(pl, message)],
                 });
                 // Get links from all items and
-                const promises = pl.items.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-                    return new song_1.Song(yield ytdl.getInfo(item.shortUrl));
-                }));
+                const promises = pl.items.map(async (item) => {
+                    return new song_1.Song(await ytdl.getInfo(item.shortUrl));
+                });
                 Promise.all(promises)
                     .then((data) => {
                     serverQueue.songs = [...serverQueue.songs, ...data];
@@ -182,15 +238,20 @@ module.exports = new command_1.Command({
                 });
             }
             if (serverQueue.songs.length === 0 && isPlaylist) {
+                if (!pl) {
+                    console.error('No playlist');
+                    return;
+                }
+                clearInterval(timer);
                 if (isPlaylist) {
                     // Send the message about playlist
                     serverQueue.textChannel.send({
                         embeds: [(0, playlistInfo_1.createPlaylistInfoEmbed)(pl, message)],
                     });
                     // Get links from all items and
-                    const promises = pl.items.map((item) => __awaiter(void 0, void 0, void 0, function* () {
-                        return new song_1.Song(yield ytdl.getInfo(item.shortUrl));
-                    }));
+                    const promises = pl.items.map(async (item) => {
+                        return new song_1.Song(await ytdl.getInfo(item.shortUrl));
+                    });
                     Promise.all(promises)
                         .then((data) => {
                         serverQueue.songs = [...serverQueue.songs, ...data];
@@ -199,7 +260,12 @@ module.exports = new command_1.Command({
                     return;
                 }
             }
+            if (!song) {
+                console.error('No song');
+                return;
+            }
             if (serverQueue.songs.length === 0 && !isPlaylist) {
+                clearInterval(timer);
                 serverQueue.songs.push(song);
                 if (song && song.title && message) {
                     serverQueue.textChannel.send({
@@ -209,10 +275,11 @@ module.exports = new command_1.Command({
                 (0, playSong_1.playSong)(serverQueue, message);
                 return;
             }
+            clearInterval(timer);
             serverQueue.songs.push(song);
             return serverQueue.textChannel.send({
                 embeds: [(0, songToQueue_1.createAddSongToQueue)(song, message, serverQueue.songs)],
             });
         }
-    }),
+    },
 });

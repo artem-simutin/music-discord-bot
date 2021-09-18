@@ -2,16 +2,20 @@
   "name": "music-discord-bot",
   "version": "1.0.0",
   "description": "",
-  "main": "src/main.ts",
+  "main": "build/src/main.js",
   "author": "statik-coder",
   "license": "ISC",
   "scripts": {
-    "start": "nodemon"
+    "start": "pm2 start build/src/main.js --attach",
+    "dev": "nodemon",
+    "prebuild": "rm -rf build",
+    "build": "tsc"
   },
   "dependencies": {
     "@discordjs/opus": "github:discordjs/opus",
     "@discordjs/voice": "^0.6.0",
     "@types/node": "^16.9.1",
+    "cross-env": "^7.0.3",
     "discord.js": "^13.1.0",
     "dotenv": "^10.0.0",
     "ffmpeg-static": "^4.4.0",

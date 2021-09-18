@@ -1,5 +1,4 @@
-import { Message, MessageEmbed } from 'discord.js'
-import { Song } from '../../builders/song'
+import { MessageEmbed } from 'discord.js'
 
 export const createLookingForPlaylist = (request: string) => {
   const embed = new MessageEmbed()

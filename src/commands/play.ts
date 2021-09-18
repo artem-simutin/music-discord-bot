@@ -20,17 +20,29 @@ import ytpl from 'ytpl'
 import { createLookingForSong } from '../embeds/music/lookingForSong'
 import { createLookingForPlaylist } from '../embeds/music/lookingForPlaylist'
 
-let timer
+let timer: NodeJS.Timeout
 
 module.exports = new Command({
   name: ['play', 'p'],
   description: 'Plays song from youtube url',
   run: async (message, args, client) => {
+    if (!message.member) {
+      console.error('No message member')
+      return
+    }
+
     // Take voice chanel
     const voiceChannel = message.member.voice.channel
 
+    if (!message.guild) {
+      console.error('No message guild')
+      return
+    }
+
     // Get server queue
-    const serverQueue: QueueConstructs = client.queue.get(message.guild.id)
+    const serverQueue: QueueConstructs | undefined = client.queue.get(
+      message.guild.id
+    )
 
     // If no voice chanel found
     if (!voiceChannel)
@@ -42,11 +54,19 @@ module.exports = new Command({
         ],
       })
 
+    if (!message.client.user) {
+      console.error('No message client user')
+      return
+    }
+
     // Get permissions
     const permissions = voiceChannel.permissionsFor(message.client.user)
 
     // Check, has bot needed permissions
-    if (!permissions.has('CONNECT') || !permissions.has('SPEAK')) {
+    if (
+      permissions &&
+      (!permissions.has('CONNECT') || !permissions.has('SPEAK'))
+    ) {
       return message.channel.send({
         embeds: [
           createErrorEmbed(
@@ -103,6 +123,11 @@ module.exports = new Command({
       if (isPlaylist) {
         const promise = new Promise<boolean>((res, rej) => {
           try {
+            if (!pl) {
+              console.error('No playlist')
+              return
+            }
+
             // Send the message about playlist
             queueConstruct.textChannel.send({
               embeds: [createPlaylistInfoEmbed(pl, message)],
@@ -127,6 +152,13 @@ module.exports = new Command({
         // Set promise for loading
         queueConstruct.loading = promise
       } else {
+        if (!song) {
+          return message.reply({
+            embeds: [
+              createErrorEmbed('Something went wrong while playing the song!'),
+            ],
+          })
+        }
         // Pushing the song to our songs array
         queueConstruct.songs.push(song)
       }
@@ -159,15 +191,23 @@ module.exports = new Command({
           }
 
           // When all songs will be loaded => start playing
-          queueConstruct.loading.then(
-            (bool) => !bool && isPlaylist && playSong(queueConstruct, message)
-          )
+          queueConstruct.loading &&
+            queueConstruct.loading.then(
+              (bool) => !bool && isPlaylist && playSong(queueConstruct, message)
+            )
 
           !isPlaylist && playSong(queueConstruct, message)
 
           /**
            * Player idle handler
            */
+          if (!queueConstruct.player) {
+            message.channel.send({
+              embeds: [createErrorEmbed('No music player')],
+            })
+            return
+          }
+
           queueConstruct.player.on(AudioPlayerStatus.Idle, () => {
             if (queueConstruct.songs.length <= 1) {
               // Set empty songs array
@@ -181,7 +221,7 @@ module.exports = new Command({
 
                 if (client.queue) {
                   // Clear queue
-                  client.queue.delete(message.guild.id)
+                  message.guild && client.queue.delete(message.guild.id)
                 }
                 return
               }, 300000)
@@ -197,30 +237,26 @@ module.exports = new Command({
          * On disconnect
          */
         queueConstruct.connection.on(VoiceConnectionStatus.Destroyed, () => {
-          console.log('Disconnected')
-
           // Set empty songs array
           queueConstruct.songs = []
 
-          if (queueConstruct.connection) {
-            // Clear connection
-            queueConstruct.connection.destroy()
-          }
-
           if (client.queue) {
             // Clear queue
-            client.queue.delete(message.guild.id)
+            message.guild && client.queue.delete(message.guild.id)
           }
           return
         })
       } catch (error) {
         console.error(error)
-        serverQueue.textChannel.send({
-          embeds: [createErrorEmbed(error.message)],
-        })
+        return
       }
     } else {
       if (serverQueue.songs.length > 0 && isPlaylist) {
+        if (!pl) {
+          console.error('No playlist')
+          return
+        }
+
         clearInterval(timer)
         // Send the message about playlist
         serverQueue.textChannel.send({
@@ -242,6 +278,11 @@ module.exports = new Command({
       }
 
       if (serverQueue.songs.length === 0 && isPlaylist) {
+        if (!pl) {
+          console.error('No playlist')
+          return
+        }
+
         clearInterval(timer)
         if (isPlaylist) {
           // Send the message about playlist
@@ -262,6 +303,11 @@ module.exports = new Command({
 
           return
         }
+      }
+
+      if (!song) {
+        console.error('No song')
+        return
       }
 
       if (serverQueue.songs.length === 0 && !isPlaylist) {
