@@ -38,8 +38,6 @@ export const parsePlaylist = (
       Promise.all(promises).then((data) => {
         const filteredSongs = data.filter((n) => n)
 
-        console.log(filteredSongs)
-
         queueConstruct.songs = [
           ...queueConstruct.songs,
           ...(filteredSongs as Song[]),

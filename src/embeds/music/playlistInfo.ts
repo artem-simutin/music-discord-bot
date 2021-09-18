@@ -27,7 +27,7 @@ export const createPlaylistInfoEmbed = (
     .setThumbnail(playlist.thumbnails[0].url ? playlist.thumbnails[0].url : '')
     .addFields(
       {
-        name: ':timer: Songs duration:',
+        name: ':timer: Playlist duration:',
         value: seconds ? parseDuration(seconds) : 'No information',
         inline: true,
       },
