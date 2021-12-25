@@ -14,7 +14,10 @@ export const createStartPlayingEmbed = (song: Song, message: Message) => {
     .setColor('#006BA8')
     .setTitle(song.title)
     .setURL(song.url)
-    .setAuthor('Started playing', authorImage)
+    .setAuthor({
+      name: 'Started playing',
+      iconURL: authorImage,
+    })
     .setThumbnail(song.thumbnail.url)
     .addFields(
       {
@@ -25,11 +28,6 @@ export const createStartPlayingEmbed = (song: Song, message: Message) => {
       {
         name: ':thumbsup: Likes ',
         value: song.likes ? formatToKMB(song.likes) : 'No information',
-        inline: true,
-      },
-      {
-        name: ':thumbsdown: Dislikes',
-        value: song.dislikes ? formatToKMB(song.dislikes) : 'No information',
         inline: true,
       },
       {
