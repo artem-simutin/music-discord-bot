@@ -25,12 +25,12 @@ export const createAddSongToQueue = (
     .setThumbnail(song.thumbnail.url)
     .addFields(
       {
-        name: ':timer: Song duration',
+        name: ':timer:  Song duration',
         value: parseDuration(song.length),
         inline: true,
       },
       {
-        name: ':thumbsup: Likes ',
+        name: ':thumbsup:  Likes ',
         value: song.likes ? formatToKMB(song.likes) : 'No information',
         inline: true,
       },
@@ -40,12 +40,12 @@ export const createAddSongToQueue = (
         inline: true,
       },
       {
-        name: ':flying_disc: Position in queue',
+        name: ':flying_disc:  Position in queue',
         value: (songs.length - 1).toString(),
         inline: true,
       },
       {
-        name: ':ear: Queue duration',
+        name: ':ear:  Queue duration',
         value: parseDuration(
           songs
             .map((item) => parseInt(item.length))

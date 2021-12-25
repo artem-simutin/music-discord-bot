@@ -8,6 +8,7 @@ export class Song {
   authorName: string
   length: string
   views: string
+  isLive: boolean
 
   constructor(songInfo: VideoInfo) {
     this.title = songInfo.videoDetails.title
@@ -17,5 +18,6 @@ export class Song {
     this.length = songInfo.videoDetails.lengthSeconds
     this.thumbnail = songInfo.videoDetails.thumbnails[0]
     this.views = songInfo.videoDetails.viewCount
+    this.isLive = songInfo.videoDetails.isLiveContent
   }
 }

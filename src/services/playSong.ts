@@ -2,7 +2,7 @@ import { QueueConstructs } from '../types/queueConstruct'
 import { Message } from 'discord.js'
 import { createAudioResource } from '@discordjs/voice'
 import { createErrorEmbed } from '../embeds/error'
-import ytdl from 'ytdl-core'
+import ytdl, { downloadOptions as DownloadOptions } from 'ytdl-core'
 
 export const playSong = (queueConstruct: QueueConstructs, message: Message) => {
   if (queueConstruct.songs.length === 0) {
@@ -13,12 +13,21 @@ export const playSong = (queueConstruct: QueueConstructs, message: Message) => {
 
   queueConstruct.resource = null
 
-  const stream = ytdl(queueConstruct.songs[0].url, {
-    quality: 'highestaudio',
-    filter: 'audioonly',
-    highWaterMark: 1 << 25,
-    liveBuffer: 40000,
-  })
+  const songToPlay = queueConstruct.songs[0]
+
+  const options: DownloadOptions = songToPlay.isLive
+    ? {
+        highWaterMark: 1 << 25,
+        liveBuffer: 40000,
+      }
+    : {
+        quality: 'highestaudio',
+        filter: 'audioonly',
+        highWaterMark: 1 << 25,
+        liveBuffer: 40000,
+      }
+
+  const stream = ytdl(songToPlay.url, options)
 
   if (!queueConstruct.resource) {
     queueConstruct.resource = createAudioResource(stream, {
