@@ -21,13 +21,11 @@ export const playSong = (queueConstruct: QueueConstructs, message: Message) => {
   })
 
   if (!queueConstruct.resource) {
-    queueConstruct.resource = createAudioResource(stream, {
-      inlineVolume: true,
-    })
+    queueConstruct.resource = createAudioResource(stream)
   }
 
-  queueConstruct.resource.volume &&
-    queueConstruct.resource.volume.setVolume(100 / queueConstruct.volume / 25)
+  // This string is useless when `inlineVolume` is disabled in create audio resource options
+  // queueConstruct.resource.volume && queueConstruct.resource.volume.setVolume(1)
 
   if (!queueConstruct.connection) {
     message.reply({
