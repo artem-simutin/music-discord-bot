@@ -1,7 +1,7 @@
 {
   "name": "music-discord-bot",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.1",
+  "description": "Discord music bot that allows play music from youtube",
   "main": "build/src/main.js",
   "author": "statik-coder",
   "license": "ISC",
