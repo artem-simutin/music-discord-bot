@@ -21,3 +21,5 @@ All command should use with `!!` prefix
 - `pause` - pause current song
 
 - `unpause` or `resume` - resume paused song
+
+- `current` or `now` - show current song info
