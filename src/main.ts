@@ -8,7 +8,11 @@ console.log(generateDependencyReport())
 
 const client = new Client()
 
-console.log(process.env.BUILD_MODE)
+console.log(
+  'Build mode: ' + process.env.BUILD_MODE
+    ? process.env.BUILD_MODE
+    : '(using "development" by default)'
+)
 
 if (config.token) {
   client.start(config.token)

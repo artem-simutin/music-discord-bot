@@ -1,9 +1,9 @@
 import { AudioPlayer, AudioResource, VoiceConnection } from '@discordjs/voice'
-import { StageChannel, TextBasedChannels, VoiceChannel } from 'discord.js'
+import { StageChannel, TextBasedChannel, VoiceChannel } from 'discord.js'
 import { Song } from '../builders/song'
 
 export interface QueueConstructs {
-  textChannel: TextBasedChannels
+  textChannel: TextBasedChannel
   voiceChannel: VoiceChannel | StageChannel
   connection: VoiceConnection | null
   player: AudioPlayer | null
