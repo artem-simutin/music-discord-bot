@@ -23,7 +23,10 @@ export const createPlaylistInfoEmbed = (
     .setColor('#00A455')
     .setTitle(playlist.title)
     .setURL(playlist.url)
-    .setAuthor('Added playlist to queue', authorImage)
+    .setAuthor({
+      name: 'Added playlist to queue',
+      iconURL: authorImage,
+    })
     .setThumbnail(playlist.thumbnails[0].url ? playlist.thumbnails[0].url : '')
     .addFields(
       {

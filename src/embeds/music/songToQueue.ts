@@ -18,7 +18,10 @@ export const createAddSongToQueue = (
     .setColor('#00FF47')
     .setTitle(song.title)
     .setURL(song.url)
-    .setAuthor('Song added to queue', authorImage)
+    .setAuthor({
+      name: 'Song added to queue',
+      iconURL: authorImage,
+    })
     .setThumbnail(song.thumbnail.url)
     .addFields(
       {
