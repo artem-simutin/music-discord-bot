@@ -4,7 +4,7 @@ export const createErrorEmbed = (text: string) => {
   const embed = new MessageEmbed()
     .setColor('#FF0000')
     .setTitle(
-      ':no_entry_sign: :x:  Ops! Ocurred some error! :x: :no_entry_sign:'
+      ':no_entry_sign: :x:  Ops! Ocurred some error!  :x: :no_entry_sign:'
     )
     .setDescription(text)
     .setTimestamp()

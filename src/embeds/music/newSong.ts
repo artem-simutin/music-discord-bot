@@ -21,12 +21,12 @@ export const createStartPlayingEmbed = (song: Song, message: Message) => {
     .setThumbnail(song.thumbnail.url)
     .addFields(
       {
-        name: ':timer: Song duration',
-        value: parseDuration(song.length),
+        name: ':timer:  Song duration',
+        value: song.isLive ? 'Live  :red_circle:' : parseDuration(song.length),
         inline: true,
       },
       {
-        name: ':thumbsup: Likes ',
+        name: ':thumbsup:  Likes ',
         value: song.likes ? formatToKMB(song.likes) : 'No information',
         inline: true,
       },

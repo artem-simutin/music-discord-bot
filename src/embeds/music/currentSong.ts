@@ -22,7 +22,7 @@ export const createCurrentSongEmbed = (song: Song, message: Message) => {
     .addFields(
       {
         name: ':timer: Song duration',
-        value: parseDuration(song.length),
+        value: song.isLive ? 'Live :red_circle:' : parseDuration(song.length),
         inline: true,
       },
       {
