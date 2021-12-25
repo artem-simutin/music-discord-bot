@@ -11,7 +11,7 @@
     "dev": "nodemon",
     "prebuild": "rm -rf build",
     "build": "tsc",
-    "prestart": "yarn build"
+    "prestart": "npm run build"
   },
   "dependencies": {
     "@discordjs/opus": "github:discordjs/opus",
