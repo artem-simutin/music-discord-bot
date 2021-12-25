@@ -28,11 +28,6 @@ export const createStartPlayingEmbed = (song: Song, message: Message) => {
         inline: true,
       },
       {
-        name: ':thumbsdown: Dislikes',
-        value: song.dislikes ? formatToKMB(song.dislikes) : 'No information',
-        inline: true,
-      },
-      {
         name: ':eye:  Views',
         value: formatToKMB(song.views),
         inline: true,

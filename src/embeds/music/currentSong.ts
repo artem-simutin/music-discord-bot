@@ -3,11 +3,7 @@ import { parseDuration } from '../../services/parceDuration'
 import { Song } from '../../builders/song'
 import { formatToKMB } from '../../services/formatToKMB'
 
-export const createAddSongToQueue = (
-  song: Song,
-  message: Message,
-  songs: Song[]
-) => {
+export const createCurrentSongEmbed = (song: Song, message: Message) => {
   let authorImage: string | undefined = undefined
 
   if (message && message.author && message.author.avatarURL()) {
@@ -15,10 +11,10 @@ export const createAddSongToQueue = (
   }
 
   const embed = new MessageEmbed()
-    .setColor('#00FF47')
+    .setColor('#FFFFFF')
     .setTitle(song.title)
     .setURL(song.url)
-    .setAuthor('Song added to queue', authorImage)
+    .setAuthor('Current song is', authorImage)
     .setThumbnail(song.thumbnail.url)
     .addFields(
       {
@@ -34,20 +30,6 @@ export const createAddSongToQueue = (
       {
         name: ':eye:  Views',
         value: formatToKMB(song.views),
-        inline: true,
-      },
-      {
-        name: ':flying_disc: Position in queue',
-        value: (songs.length - 1).toString(),
-        inline: true,
-      },
-      {
-        name: ':ear: Queue duration',
-        value: parseDuration(
-          songs
-            .map((item) => parseInt(item.length))
-            .reduce((acc, current) => acc + current, 0)
-        ),
         inline: true,
       }
     )

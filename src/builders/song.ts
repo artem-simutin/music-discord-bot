@@ -4,7 +4,6 @@ export class Song {
   title: string
   url: string
   likes: number | null
-  dislikes: number | null
   thumbnail: Thumbnail
   authorName: string
   length: string
@@ -15,7 +14,6 @@ export class Song {
     this.url = songInfo.videoDetails.video_url
     this.authorName = songInfo.videoDetails.author.name
     this.likes = songInfo.videoDetails.likes
-    this.dislikes = songInfo.videoDetails.dislikes
     this.length = songInfo.videoDetails.lengthSeconds
     this.thumbnail = songInfo.videoDetails.thumbnails[0]
     this.views = songInfo.videoDetails.viewCount
