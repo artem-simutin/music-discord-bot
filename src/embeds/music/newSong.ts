@@ -14,7 +14,10 @@ export const createStartPlayingEmbed = (song: Song, message: Message) => {
     .setColor('#006BA8')
     .setTitle(song.title)
     .setURL(song.url)
-    .setAuthor('Started playing', authorImage)
+    .setAuthor({
+      name: 'Started playing',
+      iconURL: authorImage,
+    })
     .setThumbnail(song.thumbnail.url)
     .addFields(
       {

@@ -16,7 +16,10 @@ export const createUnPauseEmbed = (
     .setColor('#DFAE00')
     .setTitle(isPaused ? `:pause_button: ${song.title}` : ':open_hands: Nope')
     .setURL(song.url)
-    .setAuthor(isPaused ? 'Unpaused' : "Song hasn't paused!", authorImage)
+    .setAuthor({
+      name: isPaused ? 'Unpaused' : "Song hasn't paused!",
+      iconURL: authorImage,
+    })
     .setThumbnail(song.thumbnail.url)
     .setTimestamp()
     .setFooter('Powered by DELAMAIN')

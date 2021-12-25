@@ -48,7 +48,7 @@ export class Client extends Discord.Client {
         })
     } else {
       /**
-       * If environment is development => look for JavaScript files
+       * If environment is production => look for JavaScript files
        */
       fs.readdirSync('./build/src/commands')
         .filter((file) => file.endsWith('.js'))

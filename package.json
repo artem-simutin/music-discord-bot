@@ -1,7 +1,7 @@
 {
   "name": "music-discord-bot",
-  "version": "1.0.0",
-  "description": "",
+  "version": "1.0.1",
+  "description": "Discord music bot that allows play music from youtube",
   "main": "build/src/main.js",
   "author": "statik-coder",
   "license": "ISC",
@@ -10,7 +10,8 @@
     "start": "PORT=3000 pm2 start build/src/main.js --attach",
     "dev": "nodemon",
     "prebuild": "rm -rf build",
-    "build": "tsc"
+    "build": "tsc",
+    "prestart": "yarn build"
   },
   "dependencies": {
     "@discordjs/opus": "github:discordjs/opus",

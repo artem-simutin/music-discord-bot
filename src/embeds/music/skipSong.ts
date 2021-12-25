@@ -12,7 +12,10 @@ export const createSkipEmbed = (song: Song, message: Message) => {
     .setColor('#400072')
     .setTitle(song.title)
     .setURL(song.url)
-    .setAuthor('Skipped song', authorImage)
+    .setAuthor({
+      name: 'Skipped song',
+      iconURL: authorImage,
+    })
     .setThumbnail(song.thumbnail.url)
     .setTimestamp()
     .setFooter('Powered by DELAMAIN')
