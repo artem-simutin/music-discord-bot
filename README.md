@@ -10,7 +10,7 @@ All command should use with `!!` prefix
 
 - `ping` - ping a bot and show latency between the bot and your computer (also show message latency)
 
-- `play` or `p` - plays song or whole playlist from youtube
+- `play` or `p` - plays song or whole playlist from YouTube (now supports live streams)
 
 - `dis` or `disconnect` - disconnect bot from voice chanel (need to be in in the same voice chanel as the bot)
 
