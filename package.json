@@ -10,7 +10,8 @@
     "start": "PORT=3000 pm2 start build/src/main.js --attach",
     "dev": "nodemon",
     "prebuild": "rm -rf build",
-    "build": "tsc"
+    "build": "tsc",
+    "prestart": "yarn build"
   },
   "dependencies": {
     "@discordjs/opus": "github:discordjs/opus",

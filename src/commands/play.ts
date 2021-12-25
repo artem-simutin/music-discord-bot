@@ -4,13 +4,13 @@
 const ytdl = require('ytdl-core')
 import { Command } from '../structures/command'
 import { QueueConstructs } from '../types/queueConstruct'
-import { createPlaylistInfoEmbed } from '../embeds/music/playlistInfo'
 import { Song } from '../builders/song'
 import {
   AudioPlayerStatus,
   createAudioPlayer,
   joinVoiceChannel,
   VoiceConnectionStatus,
+  DiscordGatewayAdapterCreator,
 } from '@discordjs/voice'
 import { createStartPlayingEmbed } from '../embeds/music/newSong'
 import { playSong } from '../services/playSong'
@@ -144,7 +144,8 @@ module.exports = new Command({
         const connection = joinVoiceChannel({
           channelId: voiceChannel.id,
           guildId: voiceChannel.guild.id,
-          adapterCreator: voiceChannel.guild.voiceAdapterCreator,
+          adapterCreator: voiceChannel.guild
+            .voiceAdapterCreator as DiscordGatewayAdapterCreator,
         })
 
         // Set connection to queue construct
