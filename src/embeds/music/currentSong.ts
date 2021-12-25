@@ -14,7 +14,10 @@ export const createCurrentSongEmbed = (song: Song, message: Message) => {
     .setColor('#FFFFFF')
     .setTitle(song.title)
     .setURL(song.url)
-    .setAuthor('Current song is', authorImage)
+    .setAuthor({
+      name: 'Current song is',
+      iconURL: authorImage,
+    })
     .setThumbnail(song.thumbnail.url)
     .addFields(
       {
