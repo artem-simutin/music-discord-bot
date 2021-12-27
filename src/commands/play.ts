@@ -95,6 +95,14 @@ module.exports = new Command({
     } else {
       message.channel.send({ embeds: [createLookingForSong(args[1])] })
       try {
+        const isUrlValid = await ytdl.validateURL(args[1])
+
+        if (!isUrlValid) {
+          message.reply({
+            embeds: [createErrorEmbed('Please provide valid YouTube link!')]
+          })
+        }
+
         // Get song info
         const songInfo = await ytdl.getInfo(args[1])
 
