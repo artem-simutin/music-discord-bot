@@ -18,7 +18,7 @@ export const playSong = (queueConstruct: QueueConstructs, message: Message) => {
   const options: DownloadOptions = songToPlay.isLive
     ? {
         highWaterMark: 1 << 25,
-        liveBuffer: 40000,
+        liveBuffer: 4900,
       }
     : {
         quality: 'highestaudio',
