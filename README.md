@@ -1,6 +1,6 @@
 # Delamain Music Bot
 
-## Music bot for discord on discord.js v13
+**Music bot for discord on discord.js v13**
 
 ![Bot Header](./assets/Head.png)
 
