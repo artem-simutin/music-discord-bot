@@ -10,7 +10,9 @@ export const createLoopEmbed = (on: boolean) => {
         : 'Now songs will switches!'
     )
     .setTimestamp()
-    .setFooter('Powered by DELAMAIN')
+    .setFooter({
+      text: 'Powered by DELAMAIN',
+    })
 
   return embed
 }

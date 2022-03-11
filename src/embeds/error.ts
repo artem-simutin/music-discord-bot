@@ -8,7 +8,9 @@ export const createErrorEmbed = (text: string) => {
     )
     .setDescription(text)
     .setTimestamp()
-    .setFooter('Powered by DELAMAIN')
+    .setFooter({
+      text: 'Powered by DELAMAIN',
+    })
 
   return embed
 }

@@ -41,7 +41,9 @@ export const createPlaylistInfoEmbed = (
       }
     )
     .setTimestamp()
-    .setFooter('Powered by DELAMAIN')
+    .setFooter({
+      text: 'Powered by DELAMAIN',
+    })
 
   return embed
 }
