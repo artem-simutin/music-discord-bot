@@ -1,7 +1,7 @@
 /**
  * Imports
  */
-const ytdl = require('ytdl-core')
+import ytdl from 'ytdl-core'
 import { Command } from '../structures/command'
 import { QueueConstructs } from '../types/queueConstruct'
 import { Song } from '../builders/song'
@@ -94,15 +94,17 @@ module.exports = new Command({
       }
     } else {
       message.channel.send({ embeds: [createLookingForSong(args[1])] })
+
+      // Check is valid YouTube URL
+      const isValid = ytdl.validateURL(args[1])
+
+      if (!isValid) {
+        return message.reply({
+          embeds: [createErrorEmbed('Please provide valid YouTube link!')],
+        })
+      }
+
       try {
-        const isUrlValid = await ytdl.validateURL(args[1])
-
-        if (!isUrlValid) {
-          message.reply({
-            embeds: [createErrorEmbed('Please provide valid YouTube link!')]
-          })
-        }
-
         // Get song info
         const songInfo = await ytdl.getInfo(args[1])
 
@@ -183,9 +185,6 @@ module.exports = new Command({
 
           !isPlaylist && playSong(queueConstruct, message)
 
-          /**
-           * Player idle handler
-           */
           if (!queueConstruct.player) {
             message.channel.send({
               embeds: [createErrorEmbed('No music player')],
@@ -193,13 +192,16 @@ module.exports = new Command({
             return
           }
 
+          /**
+           * Idle audio LISTENER
+           */
           queueConstruct.player.on(AudioPlayerStatus.Idle, () => {
             if (queueConstruct.loop) {
               playSong(queueConstruct, message)
               return
             }
 
-            if (queueConstruct.songs.length <= 1) {
+            if (queueConstruct.songs.length === 1) {
               // Set empty songs array
               queueConstruct.songs = []
 
@@ -234,6 +236,9 @@ module.exports = new Command({
             // Clear queue
             message.guild && client.queue.delete(message.guild.id)
           }
+
+          clearTimeout(timer)
+
           return
         })
 
@@ -241,7 +246,7 @@ module.exports = new Command({
          * On disconnect
          */
         queueConstruct.connection.on(VoiceConnectionStatus.Disconnected, () => {
-          console.log('disconnected manually')
+          console.log('WARN: disconnected manually')
 
           // Set empty songs array
           queueConstruct.songs = []
@@ -250,16 +255,22 @@ module.exports = new Command({
             queueConstruct.connection.destroy()
           }
 
+          clearTimeout(timer)
+
           if (client.queue) {
             // Clear queue
             message.guild && client.queue.delete(message.guild.id)
           }
+
+          return
         })
       } catch (error) {
         console.error(error)
         return
       }
     } else {
+      clearInterval(timer)
+
       if (serverQueue.songs.length > 0 && isPlaylist) {
         if (!pl) {
           console.error('No playlist')
@@ -289,6 +300,7 @@ module.exports = new Command({
 
       if (serverQueue.songs.length === 0 && !isPlaylist) {
         clearInterval(timer)
+
         serverQueue.songs.push(song)
         if (song && song.title && message) {
           serverQueue.textChannel.send({

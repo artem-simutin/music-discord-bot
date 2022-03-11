@@ -22,7 +22,9 @@ export const createUnPauseEmbed = (
     })
     .setThumbnail(song.thumbnail.url)
     .setTimestamp()
-    .setFooter('Powered by DELAMAIN')
+    .setFooter({
+      text: 'Powered by DELAMAIN',
+    })
 
   return embed
 }

@@ -37,7 +37,9 @@ export const createCurrentSongEmbed = (song: Song, message: Message) => {
       }
     )
     .setTimestamp()
-    .setFooter('Powered by DELAMAIN')
+    .setFooter({
+      text: 'Powered by DELAMAIN',
+    })
 
   return embed
 }

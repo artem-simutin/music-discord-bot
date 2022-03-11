@@ -6,7 +6,9 @@ export const createLookingForSong = (request: string) => {
     .setTitle(':mag_right:  Looking for song: ' + request)
     .setURL(request)
     .setTimestamp()
-    .setFooter('Powered by DELAMAIN')
+    .setFooter({
+      text: 'Powered by DELAMAIN',
+    })
 
   return embed
 }

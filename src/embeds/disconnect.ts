@@ -5,7 +5,9 @@ export const createDisconnectEmbed = () => {
     .setColor('#000000')
     .setTitle(':electric_plug:  Disconnected!  :electric_plug: ')
     .setTimestamp()
-    .setFooter('Powered by DELAMAIN')
+    .setFooter({
+      text: 'Powered by DELAMAIN',
+    })
 
   return embed
 }

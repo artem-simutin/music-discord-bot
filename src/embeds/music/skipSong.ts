@@ -18,7 +18,9 @@ export const createSkipEmbed = (song: Song, message: Message) => {
     })
     .setThumbnail(song.thumbnail.url)
     .setTimestamp()
-    .setFooter('Powered by DELAMAIN')
+    .setFooter({
+      text: 'Powered by DELAMAIN',
+    })
 
   return embed
 }
