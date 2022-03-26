@@ -6,7 +6,8 @@
   "author": "statik-coder",
   "license": "ISC",
   "scripts": {
-    "start": "PORT=3000 pm2 start build/src/main.js --attach",
+    "heroku": "npm install node@latest --save-exact && npm install pm2 -g",
+    "start": "pm2 start build/src/main.js --attach",
     "dev": "nodemon",
     "prebuild": "rm -rf build",
     "build": "tsc"
@@ -23,7 +24,6 @@
     "inversify": "^5.1.1",
     "libsodium": "^0.7.9",
     "libsodium-wrappers": "^0.7.9",
-    "node": "16.9.1",
     "opusscript": "^0.0.8",
     "reflect-metadata": "^0.1.13",
     "sodium": "^3.0.2",
