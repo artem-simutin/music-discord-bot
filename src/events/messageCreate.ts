@@ -8,14 +8,16 @@ module.exports = new Event('messageCreate', (client, message: Message) => {
 
   const args = message.content.substring(client.prefix.length).split(/ +/)
 
+  const requestedCommand = args[0].trim().toLowerCase();
+
   const command = client.commands.find((cmd) => {
     const isString = typeof cmd.name === 'string'
-    return isString ? cmd.name === args[0] : cmd.name.includes(args[0])
+    return isString ? cmd.name === requestedCommand : cmd.name.includes(requestedCommand)
   })
 
   if (!command) {
     return message.reply({
-      embeds: [createErrorEmbed(`${args[0]} is invalid bot command`)],
+      embeds: [createErrorEmbed(`${requestedCommand} is invalid bot command`)],
     })
   }
 
