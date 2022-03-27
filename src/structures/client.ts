@@ -5,22 +5,25 @@ import { Event } from './event'
 import config from '../../config/config'
 import { QueueConstructs } from '../types/queueConstruct'
 
-type EnvType = 'production' | 'development'
-
-const environment: EnvType = config.BUILD_MODE
-  ? (config.BUILD_MODE as EnvType)
-  : 'development'
+const environment = config.BUILD_MODE ? config.BUILD_MODE : 'development'
 
 const intents = new Discord.Intents(32767)
 
-export class Client extends Discord.Client {
+/**
+ * Main bot instance that contains all instances to control bot
+ */
+export class Client {
+  discordClient: Discord.Client
   commands: Discord.Collection<string, Command>
   queue: Discord.Collection<string, QueueConstructs>
   prefix: string
 
   constructor(options?: Discord.ClientOptions) {
-    super({ ...options, intents, retryLimit: 10 })
-
+    this.discordClient = new Discord.Client({
+      ...options,
+      intents,
+      retryLimit: 10,
+    })
     this.prefix = config.prefix
     this.commands = new Discord.Collection()
     this.queue = new Discord.Collection()
@@ -44,7 +47,7 @@ export class Client extends Discord.Client {
         .forEach((file) => {
           const event: Event = require(`../events/${file}`)
           console.log(`Event @@@ ${event.event} @@@ loaded`)
-          this.on(event.event, event.handler.bind(null, this))
+          this.discordClient.on(event.event, event.handler.bind(null, this))
         })
     } else {
       /**
@@ -63,10 +66,19 @@ export class Client extends Discord.Client {
         .forEach((file) => {
           const event: Event = require(`../events/${file}`)
           console.log(`Event @@@ ${event.event} @@@ loaded`)
-          this.on(event.event, event.handler.bind(null, this))
+          this.discordClient.on(event.event, event.handler.bind(null, this))
         })
     }
 
-    this.login(token)
+    this.discordClient.login(token)
+  }
+
+  getQueue() {
+    if (!this.queue) return null
+    return this.queue
+  }
+
+  setQueue(id: string, queue: QueueConstructs) {
+    this.queue.set(id, queue)
   }
 }
