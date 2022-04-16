@@ -2,7 +2,7 @@ import { QueueConstructs } from '../types/queueConstruct'
 import { Message } from 'discord.js'
 import { createAudioResource } from '@discordjs/voice'
 import { createErrorEmbed } from '../embeds/error'
-import ytdl, { downloadOptions as DownloadOptions } from 'ytdl-core'
+import ytdl, { downloadOptions as DownloadOptions } from 'ytdl-core-discord'
 
 export const playSong = (queueConstruct: QueueConstructs, message: Message) => {
   if (queueConstruct.songs.length === 0) {

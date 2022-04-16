@@ -1,7 +1,7 @@
 /**
  * Imports
  */
-import ytdl from 'ytdl-core'
+import ytdl from 'ytdl-core-discord'
 import { Command } from '../structures/command'
 import { QueueConstructs } from '../types/queueConstruct'
 import { Song } from '../builders/song'

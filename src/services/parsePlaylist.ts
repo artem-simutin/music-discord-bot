@@ -1,5 +1,5 @@
 import { Message } from 'discord.js'
-import ytdl from 'ytdl-core'
+import ytdl from 'ytdl-core-discord'
 import ytpl from 'ytpl'
 import { Song } from '../builders/song'
 import { createErrorEmbed } from '../embeds/error'
