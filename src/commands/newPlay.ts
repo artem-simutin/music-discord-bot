@@ -19,7 +19,7 @@ import { createAddSongToQueue } from '../embeds/music/songToQueue'
 import ytpl from 'ytpl'
 import { createLookingForSong } from '../embeds/music/lookingForSong'
 import { createLookingForPlaylist } from '../embeds/music/lookingForPlaylist'
-import { parsePlaylist } from '../services/parsePlaylist'
+import { parsePlaylist } from '../services/oldParsePlaylist'
 
 let timer: NodeJS.Timeout
 

@@ -1,62 +1,48 @@
-import { Message } from 'discord.js'
+import { type } from 'os'
 import ytdl from 'ytdl-core-discord'
-import ytpl from 'ytpl'
-import { Song } from '../builders/song'
-import { createErrorEmbed } from '../embeds/error'
-import { createPlaylistInfoEmbed } from '../embeds/music/playlistInfo'
-import { QueueConstructs } from '../types/queueConstruct'
+import { Result as Playlist, Item } from 'ytpl'
 
-export const parsePlaylist = (
-  queueConstruct: QueueConstructs,
-  pl: ytpl.Result | null,
-  message: Message
-) => {
-  const promise = new Promise<boolean>((res, rej) => {
+import { Song } from '../structures/song'
+import Logger from './loggers'
+
+type ReturnResponse = {
+  _failedItem?: Item
+  successful: boolean
+  item: Song | null
+}
+
+export type SuccessfulReturnResponse = {
+  successful: true
+  item: Song
+}
+
+const parsePlaylist = async (playlist: Playlist): Promise<ReturnResponse[]> => {
+  Logger.info('Started parsing playlist! - {PARSE PLAYLIST}')
+  const itemsToParse = playlist.items
+
+  const promises = itemsToParse.map(async (item) => {
     try {
-      if (!pl) {
-        console.error('No playlist')
-        return
+      const url = item.shortUrl
+      const songInfoFromYoutube = await ytdl.getInfo(url)
+
+      const response: ReturnResponse = {
+        successful: true,
+        item: new Song(songInfoFromYoutube),
       }
 
-      // Get links from all items and
-      const promises = pl.items.map(async (item) => {
-        try {
-          const trackInfo = await ytdl.getInfo(item.shortUrl)
-          return new Song(trackInfo)
-        } catch (error) {
-          message.channel.send({
-            embeds: [
-              createErrorEmbed(`Cant add song to queue: ${item.title}!`),
-            ],
-          })
-
-          return null
-        }
-      })
-
-      // Sets songs only when all items info will be ready
-      Promise.all(promises).then((data) => {
-        const filteredSongs = data.filter((n) => n)
-
-        queueConstruct.songs = [
-          ...queueConstruct.songs,
-          ...(filteredSongs as Song[]),
-        ]
-
-        // Send the message about playlist
-        queueConstruct.textChannel.send({
-          embeds: [
-            createPlaylistInfoEmbed(pl, filteredSongs as Song[], message),
-          ],
-        })
-
-        res(false)
-      })
+      return response
     } catch (error) {
-      rej(true)
-      console.error(error)
+      const response: ReturnResponse = {
+        successful: false,
+        item: null,
+        _failedItem: item,
+      }
+
+      return response
     }
   })
 
-  return promise
+  return Promise.all(promises).then((data) => data)
 }
+
+export default parsePlaylist
