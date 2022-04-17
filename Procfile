@@ -1,1 +1,1 @@
-worker: sh -c 'npm heroku && npm start'
+worker: sh -c 'npm run heroku && npm run start'
