@@ -14,12 +14,10 @@ export const createPauseEmbed = (
 
   const embed = new MessageEmbed()
     .setColor('#FFE895')
-    .setTitle(
-      !isPaused ? `:pause_button:  ${song.title}` : ':open_hands:  Nope'
-    )
+    .setTitle(isPaused ? `:pause_button:  ${song.title}` : ':open_hands:  Nope')
     .setURL(song.url)
     .setAuthor({
-      name: !isPaused ? 'Paused' : 'Song has already paused!',
+      name: isPaused ? 'Paused' : 'Song has already paused!',
       iconURL: authorImage,
     })
     .setThumbnail(song.thumbnail.url)

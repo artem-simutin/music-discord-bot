@@ -41,6 +41,7 @@ import parsePlaylist, {
 
 import { Song } from './song'
 import { createLookingForPlaylist } from '../embeds/music/lookingForPlaylist'
+import { createUnPauseEmbed } from '../embeds/music/unpause'
 
 const initialPlayerState = {
   discordAudioPlayer: null,
@@ -371,6 +372,9 @@ class QueueAndPlayer {
       Logger.info(
         'Disconnected from voice channel! - {DISCONNECT BOT FROM VOICE CHANNEL}'
       )
+
+      if (!voiceConnection) return
+
       voiceConnection.destroy()
 
       const embeds = [createDisconnectEmbed()]
@@ -406,7 +410,7 @@ class QueueAndPlayer {
     song: Song,
     options?: PlaySongThroughDiscordPlayerOpions
   ) {
-    if (options && !options.dontShowNextSong) {
+    if (!options?.dontShowNextSong) {
       const embeds = [createStartPlayingEmbed(song, message)]
 
       const textChannel = this.getTextChannel()
@@ -719,6 +723,11 @@ class QueueAndPlayer {
 
       const nextSong = this.getSongQueue()[0]
 
+      if (!nextSong) {
+        Logger.info('Song queue is ended! - {PLAY}')
+        return
+      }
+
       this.playSongThroughDiscordPlayer(message, nextSong, {
         dontShowNextSong: true,
       })
@@ -760,6 +769,11 @@ class QueueAndPlayer {
 
     const songToPlay = songsQueue[0]
 
+    if (!songToPlay) {
+      Logger.info('List is ended! - {SKIP SONG}')
+      return
+    }
+
     this.playSongThroughDiscordPlayer(message, songToPlay)
 
     Logger.info('Skipped song! - {SKIP SONG}')
@@ -793,8 +807,10 @@ class QueueAndPlayer {
 
     const isPaused = player.state.status === AudioPlayerStatus.Paused
 
+    const currentSong = songQueue[0]
+
     if (isPaused) {
-      const embeds = [createErrorEmbed("Can't pause already paused song!")]
+      const embeds = [createPauseEmbed(currentSong, message, false)]
       message.reply({ embeds })
       return
     }
@@ -812,8 +828,6 @@ class QueueAndPlayer {
 
       return
     }
-
-    const currentSong = songQueue[0]
 
     const embeds = [
       createPauseEmbed(currentSong, message, isPlayerPausedSuccessfully),
@@ -849,8 +863,10 @@ class QueueAndPlayer {
 
     const isPlaying = player.state.status === AudioPlayerStatus.Playing
 
+    const song = songQueue[0]
+
     if (isPlaying) {
-      const embeds = [createErrorEmbed("Can't resume already playing song!")]
+      const embeds = [createUnPauseEmbed(song, message, false)]
       message.reply({ embeds })
       return
     }
@@ -862,11 +878,9 @@ class QueueAndPlayer {
 
       return
     }
-
-    const song = songQueue[0]
     const isPaused = player.state.status === AudioPlayerStatus.Paused
 
-    const embeds = [createPauseEmbed(song, message, isPaused)]
+    const embeds = [createUnPauseEmbed(song, message, !isPaused)]
 
     const textChannel = this.getTextChannel()
 
