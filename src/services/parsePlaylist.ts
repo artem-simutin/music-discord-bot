@@ -1,5 +1,4 @@
-import { type } from 'os'
-import ytdl from 'ytdl-core-discord'
+import ytdl from 'ytdl-core'
 import { Result as Playlist, Item } from 'ytpl'
 
 import { Song } from '../structures/song'

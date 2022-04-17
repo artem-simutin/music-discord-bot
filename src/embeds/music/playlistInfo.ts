@@ -2,7 +2,7 @@ import { Message, MessageEmbed } from 'discord.js'
 
 import { parseDuration } from '../../services/parceDuration'
 import ytpl = require('ytpl')
-import { Song } from '../../builders/song'
+import { Song } from '../../structures/song'
 
 export const createPlaylistInfoEmbed = (
   playlist: ytpl.Result,

@@ -1,7 +1,7 @@
 import { generateDependencyReport } from '@discordjs/voice'
 import config from '../config/config'
 import { Client } from './structures/client'
-// import chalk from 'chalk'
+import chalk from 'chalk'
 
 const buildMode = process.env.BUILD_MODE
   ? process.env.BUILD_MODE
@@ -13,9 +13,11 @@ if (buildMode !== 'production') {
 }
 
 if (buildMode !== 'production') {
-  // console.log(
-  //   chalk.bgCyan.bold('The information about dependencies and core libraries')
-  // )
+  console.log(
+    chalk.cyanBright.bold(
+      '=== The information about dependencies and core libraries ==='
+    )
+  )
   console.log(generateDependencyReport())
 }
 

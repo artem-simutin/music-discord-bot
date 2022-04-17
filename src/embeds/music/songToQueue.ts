@@ -1,7 +1,7 @@
 import { Message, MessageEmbed } from 'discord.js'
 import { parseDuration } from '../../services/parceDuration'
-import { Song } from '../../builders/song'
 import { formatToKMB } from '../../services/formatToKMB'
+import { Song } from '../../structures/song'
 
 export const createAddSongToQueue = (
   song: Song,

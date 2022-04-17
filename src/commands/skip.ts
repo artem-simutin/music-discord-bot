@@ -1,45 +1,32 @@
 import { createErrorEmbed } from '../embeds/error'
-import { createSkipEmbed } from '../embeds/music/skipSong'
-import { playSong } from '../services/playSong'
+import Logger from '../services/loggers'
 import { Command } from '../structures/command'
 
 module.exports = new Command({
   name: 'skip',
   description: 'Skip current song',
   run: async (message, args, client) => {
-    if (message.member && !message.member.voice.channel)
-      return message.channel.send({
+    if (message.member && !message.member.voice.channel) {
+      Logger.warn('User is not on the voice channel! - {COMMAND: SKIP}')
+
+      message.channel.send({
         embeds: [
           createErrorEmbed(
             'You have to be in a voice channel to stop the music!'
           ),
         ],
       })
+      return
+    }
 
     const queueConstruct = message.guild && client.queue.get(message.guild.id)
 
     if (!queueConstruct) {
-      return message.reply('No music bot on chanel!')
-    }
-
-    message.channel.send({
-      embeds: [createSkipEmbed(queueConstruct.songs[0], message)],
-    })
-
-    queueConstruct.songs.shift()
-
-    if (!queueConstruct.player) {
-      message.reply({
-        embeds: [createErrorEmbed("Can't skip song. No player!")],
-      })
+      Logger.warn('No bot on the channel: no queue! - {COMMAND: SKIP SONG}')
+      message.reply('No music bot on chanel!')
       return
     }
 
-    if (queueConstruct.songs.length === 0) {
-      queueConstruct.player.stop()
-      return
-    }
-
-    playSong(queueConstruct, message)
+    queueConstruct.skipSong(message)
   },
 })

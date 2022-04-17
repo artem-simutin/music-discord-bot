@@ -5,14 +5,16 @@ module.exports = new Command({
   description: 'Shows latency',
   run: async (message, args, client) => {
     const msg = await message.reply(
-      `Bot responded with ${client.ws.ping} ms ping!`
+      `Bot responded with ${client.discordClient.ws.ping} ms ping!`
     )
     msg.edit(
       `Bot responded with ${
-        client.ws.ping
+        client.discordClient.ws.ping
       } ms ping!\nMessage is delivered with ${
         msg.createdTimestamp - message.createdTimestamp
       } ms!`
     )
+
+    return
   },
 })
