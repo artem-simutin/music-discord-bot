@@ -10,7 +10,7 @@ export const createSkipEmbed = (song: Song, message: Message) => {
 
   const embed = new MessageEmbed()
     .setColor('#400072')
-    .setTitle(song.title)
+    .setTitle(song.title || 'No title!')
     .setURL(song.url)
     .setAuthor({
       name: 'Skipped song',

@@ -16,7 +16,7 @@ export const createAddSongToQueue = (
 
   const embed = new MessageEmbed()
     .setColor('#00FF47')
-    .setTitle(song.title)
+    .setTitle(song.title || 'No title!')
     .setURL(song.url)
     .setAuthor({
       name: 'Song added to queue',
@@ -48,7 +48,7 @@ export const createAddSongToQueue = (
         name: ':ear:  Queue duration',
         value: parseDuration(
           songs
-            .map((item) => parseInt(item.length))
+            .map((item) => item.length)
             .reduce((acc, current) => acc + current, 0)
         ),
         inline: true,

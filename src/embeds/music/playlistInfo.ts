@@ -16,7 +16,7 @@ export const createPlaylistInfoEmbed = (
   }
 
   const seconds = songs
-    .map((item) => parseInt(item.length))
+    .map((item) => item.length)
     .reduce((acc, current) => current && (acc ? acc + current : 0 + current), 0)
 
   const embed = new MessageEmbed()

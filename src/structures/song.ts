@@ -1,23 +1,23 @@
-import { thumbnail as Thumbnail, videoInfo as VideoInfo } from 'ytdl-core'
+import { InfoData, YouTubeVideo } from 'play-dl'
 
 export class Song {
-  title: string
+  title: string | undefined
   url: string
   likes: number | null
-  thumbnail: Thumbnail
-  authorName: string
-  length: string
-  views: string
+  thumbnail: YouTubeVideo['thumbnails'][0]
+  authorName: string | undefined
+  length: number
+  views: number
   isLive: boolean
 
-  constructor(songInfo: VideoInfo) {
-    this.title = songInfo.videoDetails.title
-    this.url = songInfo.videoDetails.video_url
-    this.authorName = songInfo.videoDetails.author.name
-    this.likes = songInfo.videoDetails.likes
-    this.length = songInfo.videoDetails.lengthSeconds
-    this.thumbnail = songInfo.videoDetails.thumbnails[0]
-    this.views = songInfo.videoDetails.viewCount
-    this.isLive = songInfo.videoDetails.isLiveContent
+  constructor(songInfo: InfoData) {
+    this.title = songInfo.video_details.title
+    this.url = songInfo.video_details.url
+    this.authorName = songInfo.video_details.channel?.name
+    this.likes = songInfo.video_details.likes
+    this.length = songInfo.video_details.durationInSec
+    this.thumbnail = songInfo.video_details.thumbnails[0]
+    this.views = songInfo.video_details.views
+    this.isLive = songInfo.video_details.live
   }
 }
