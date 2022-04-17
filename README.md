@@ -2,7 +2,7 @@
 
 **Music bot for discord on discord.js v13**
 
-![Bot Header](./assets/Head.png)
+![Bot Header](./assets/head.png)
 
 All command should use with `!!` prefix
 
