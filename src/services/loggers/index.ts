@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import config from '../../../config/config'
+import ExceptionHandler from './exceptionHandler'
 
 class Logger extends ExceptionHandler {
   private static isEnvironmentInProduction() {

@@ -1,3 +1,5 @@
+// EsLint is disabled just 'cause it is type definition
+/* eslint-disable no-unused-vars */
 import { Message, Interaction, MessageAttachment } from 'discord.js'
 import { Client } from './client'
 

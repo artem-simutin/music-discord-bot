@@ -1,5 +1,5 @@
 import { Message, MessageEmbed } from 'discord.js'
-import { Song } from '../../builders/song'
+import { Song } from '../../structures/song'
 
 export const createSkipEmbed = (song: Song, message: Message) => {
   let authorImage: string | undefined = undefined

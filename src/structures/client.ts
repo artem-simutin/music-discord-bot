@@ -3,7 +3,7 @@ import { Command } from './command'
 import * as fs from 'fs'
 import { Event } from './event'
 import config from '../../config/config'
-import { QueueConstructs } from '../types/queueConstruct'
+import QueueAndPlayer from './queue'
 
 const environment = config.BUILD_MODE ? config.BUILD_MODE : 'development'
 
@@ -15,7 +15,7 @@ const intents = new Discord.Intents(32767)
 export class Client {
   discordClient: Discord.Client
   commands: Discord.Collection<string, Command>
-  queue: Discord.Collection<string, QueueConstructs>
+  queue: Discord.Collection<string, QueueAndPlayer>
   prefix: string
 
   constructor(options?: Discord.ClientOptions) {
@@ -73,12 +73,16 @@ export class Client {
     this.discordClient.login(token)
   }
 
-  getQueue() {
+  getQueue(id: string) {
     if (!this.queue) return null
-    return this.queue
+    return this.queue.get(id)
   }
 
-  setQueue(id: string, queue: QueueConstructs) {
+  setQueue(id: string, queue: QueueAndPlayer) {
     this.queue.set(id, queue)
+  }
+
+  removeQueue(id: string) {
+    this.queue.delete(id)
   }
 }

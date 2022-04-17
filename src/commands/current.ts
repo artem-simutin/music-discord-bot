@@ -1,5 +1,5 @@
 import { createErrorEmbed } from '../embeds/error'
-import { createCurrentSongEmbed } from '../embeds/music/currentSong'
+import Logger from '../services/loggers'
 import { Command } from '../structures/command'
 
 module.exports = new Command({
@@ -10,30 +10,22 @@ module.exports = new Command({
      * If user isn't on chanel
      */
     if (message.member && !message.member.voice.channel) {
-      return message.channel.send({
+      Logger.warn('User is not on the voice channel! - {COMMAND: CURRENT}')
+      message.channel.send({
         embeds: [
           createErrorEmbed(
             'You have to be in a voice channel to display song info!'
           ),
         ],
       })
+      return
     }
 
     const queueConstruct = message.guild && client.queue.get(message.guild.id)
 
     if (!queueConstruct) return
 
-    /**
-     * If no songs in playback
-     */
-    if (queueConstruct?.songs.length === 0) {
-      return message.channel.send({
-        embeds: [createErrorEmbed('No playing song!')],
-      })
-    }
-
-    return message.channel.send({
-      embeds: [createCurrentSongEmbed(queueConstruct.songs[0], message)],
-    })
+    queueConstruct.getInfoAboutCurrentSong(message)
+    return
   },
 })
