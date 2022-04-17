@@ -12,7 +12,7 @@ export const createStartPlayingEmbed = (song: Song, message: Message) => {
 
   const embed = new MessageEmbed()
     .setColor('#006BA8')
-    .setTitle(song.title)
+    .setTitle(song.title || 'No title!')
     .setURL(song.url)
     .setAuthor({
       name: 'Started playing',

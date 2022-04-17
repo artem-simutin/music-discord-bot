@@ -1,3 +1,4 @@
+import playDL from 'play-dl'
 import {
   AudioPlayer,
   AudioPlayerStatus,
@@ -6,6 +7,7 @@ import {
   createAudioResource,
   DiscordGatewayAdapterCreator,
   joinVoiceChannel,
+  NoSubscriberBehavior,
   VoiceConnection,
   VoiceConnectionStatus,
 } from '@discordjs/voice'
@@ -15,13 +17,12 @@ import {
   TextBasedChannel,
   VoiceChannel,
 } from 'discord.js'
-import ytdl from 'ytdl-core'
 import ytpl from 'ytpl'
 
-import {
-  AUDIO_FROM_VIDEO_STREAM_OPTIONS,
-  LIVE_AUDIO_STREAM_OPTIONS,
-} from '../../config/audioSettings'
+// import {
+//   AUDIO_FROM_VIDEO_STREAM_OPTIONS,
+//   LIVE_AUDIO_STREAM_OPTIONS,
+// } from '../../config/audioSettings'
 import config from '../../config/config'
 import { createDisconnectEmbed } from '../embeds/disconnect'
 import { createErrorEmbed } from '../embeds/error'
@@ -39,6 +40,7 @@ import parsePlaylist, {
 } from '../services/parsePlaylist'
 
 import { Song } from './song'
+import { createLookingForPlaylist } from '../embeds/music/lookingForPlaylist'
 
 const initialPlayerState = {
   discordAudioPlayer: null,
@@ -52,6 +54,10 @@ const initialPlayerState = {
 interface PlaySongOptions {
   readonly args?: string[]
   readonly ignoreParse?: boolean
+}
+
+interface PlaySongThroughDiscordPlayerOpions {
+  dontShowNextSong?: boolean
 }
 
 type ContentType = 'playlist' | 'song'
@@ -95,10 +101,6 @@ class QueueAndPlayer {
    */
   private volume: number
   /**
-   * Playing state
-   */
-  private isPlaying: boolean
-  /**
    * Loading state - is song loading from audio remote resourse and creates audio resourse
    */
   private isLoading: boolean
@@ -132,7 +134,6 @@ class QueueAndPlayer {
     this.discordAudioPlayer = initialPlayerState.discordAudioPlayer
     this.resource = initialPlayerState.resource
     this.volume = initialPlayerState.volume
-    this.isPlaying = initialPlayerState.isPlaying
     this.isLoading = initialPlayerState.isLoading
     this.isLooped = initialPlayerState.isLooped
     this.timeout = null
@@ -166,21 +167,6 @@ class QueueAndPlayer {
    */
   private setIsLooped(bool: boolean) {
     this.isLooped = bool
-  }
-
-  /**
-   * Gets "isPlaying" state property
-   */
-  private getIsPlaying() {
-    return this.isPlaying
-  }
-
-  /**
-   * Sets "isPlaying" state property
-   * @param bool - value that will be setted to the playing state
-   */
-  private setIsPlaying(bool: boolean) {
-    this.isPlaying = bool
   }
 
   /**
@@ -226,7 +212,11 @@ class QueueAndPlayer {
 
     Logger.info('Created Discord audio player! - {CREATE DISCORD AUDIO PLAYER}')
 
-    const player = createAudioPlayer()
+    const player = createAudioPlayer({
+      behaviors: {
+        noSubscriber: NoSubscriberBehavior.Play,
+      },
+    })
 
     this.discordAudioPlayer = player
 
@@ -245,14 +235,16 @@ class QueueAndPlayer {
    * Creates audio resourse through "ytdl-core"
    * @param song - song builded instance with requred params
    */
-  private createResource(song: Song) {
-    const options = song.isLive
-      ? LIVE_AUDIO_STREAM_OPTIONS
-      : AUDIO_FROM_VIDEO_STREAM_OPTIONS
+  private async createResource(song: Song) {
+    // const options = song.isLive
+    //   ? LIVE_AUDIO_STREAM_OPTIONS
+    //   : AUDIO_FROM_VIDEO_STREAM_OPTIONS
 
-    const stream = ytdl(song.url, options)
+    const stream = await playDL.stream(song.url)
 
-    const resource = createAudioResource(stream)
+    const resource = createAudioResource(stream.stream, {
+      inputType: stream.type,
+    })
 
     this.resource = resource
 
@@ -274,12 +266,14 @@ class QueueAndPlayer {
    * @param song - song builded instance with requred params
    * @returns new array length
    */
-  private addSongToQueue(song: Song, message?: Message): number {
-    Logger.info('Song is added to the queue! - {ADD OSNG TO QUEUE}')
+  private addSongToQueue(song: Song, message?: Message): void {
+    Logger.info('Song is added to the queue! - {ADD SONG TO QUEUE}')
+
+    this.songs.push(song)
 
     const songQueue = this.getSongQueue()
 
-    if (songQueue.length > 0 && message) {
+    if (songQueue.length > 1 && message) {
       const embeds = [createAddSongToQueue(song, message, songQueue)]
 
       const textChannel = this.getTextChannel()
@@ -287,7 +281,7 @@ class QueueAndPlayer {
       textChannel.send({ embeds })
     }
 
-    return this.songs.push(song)
+    return
   }
 
   /**
@@ -335,6 +329,9 @@ class QueueAndPlayer {
    * Create disconnect timeout for dissconnecting bot from voice channel
    */
   private createDisconnectTimeout() {
+    Logger.info('Created disconnect timeout! - {CREATE DISCONNECT TIMEOUT}')
+    this.clearTimeout()
+
     const timeout = setTimeout(() => {
       this.disconnectBotFromVoiceChannel()
     }, config.botDisconnectTimeout)
@@ -388,7 +385,6 @@ class QueueAndPlayer {
     this.discordAudioPlayer = initialPlayerState.discordAudioPlayer
     this.isLoading = initialPlayerState.isLoading
     this.isLooped = initialPlayerState.isLooped
-    this.isPlaying = initialPlayerState.isPlaying
     this.resource = initialPlayerState.resource
     this.volume = initialPlayerState.volume
     this.voiceConnection = null
@@ -403,13 +399,92 @@ class QueueAndPlayer {
   }
 
   /**
+   * Plays passed song through discord player
+   */
+  private async playSongThroughDiscordPlayer(
+    message: Message,
+    song: Song,
+    options?: PlaySongThroughDiscordPlayerOpions
+  ) {
+    if (options && !options.dontShowNextSong) {
+      const embeds = [createStartPlayingEmbed(song, message)]
+
+      const textChannel = this.getTextChannel()
+
+      textChannel.send({ embeds })
+    }
+
+    const audioResoure = await this.createResource(song)
+
+    const voiceConnection = this.getVoiceConnection()
+
+    if (!voiceConnection) {
+      Logger.warn(
+        'There is no connection! - {PLAY SONG THROUGH DISCORD PLAYER}'
+      )
+      return
+    }
+
+    if (!audioResoure) {
+      Logger.warn('There is no audio resourse to play! - {PLAY}')
+      return
+    }
+
+    const player = this.getPlayer()
+
+    if (!player) {
+      Logger.warn('There is no player! - {PLAY SONG THROUGH DISCORD PLAYER}')
+      return
+    }
+
+    const isSubscription = voiceConnection.subscribe(player)
+
+    if (isSubscription) {
+      Logger.info('Player is subscribed! - {PLAY}')
+      Logger.info(' ')
+    }
+
+    player.play(audioResoure)
+    Logger.info('Started play song from queue! - {PLAY}')
+  }
+
+  /**
+   * Gets current playing song or null if no current playing song
+   * @returns playing song or null
+   */
+  // private getCurrentSong(): Song | null {
+  //   return this.currentPlayingSong
+  // }
+
+  /**
+   * Sets curernt playing song
+   * @param song current song
+   */
+  // private setCurrentSong(song: Song): void {
+  //   this.currentPlayingSong = song
+  // }
+
+  /**
+   * Clears current playing song (sets it as null)
+   */
+  // private clearCurrentSong(): void {
+  //   this.currentPlayingSong = null
+  // }
+
+  /**
    * =============================================
    * =              Public methods               =
    * =============================================
    */
 
   public async play(message: Message, options?: PlaySongOptions) {
-    Logger.info('Started play song from queue! - {PLAY}')
+    const isLoading = this.getIsLoading()
+
+    if (isLoading) {
+      Logger.warn('Content is already in loding state! - {PLAY}')
+      return
+    }
+
     this.clearTimeout()
 
     const isIgnoreParse = options?.ignoreParse
@@ -439,7 +514,7 @@ class QueueAndPlayer {
         try {
           this.setLoading(true)
 
-          const isValidURL = ytdl.validateURL(contentURL)
+          const isValidURL = await playDL.validate(contentURL)
 
           if (!isValidURL) {
             Logger.warn('Is not valid YouTube URL! - {PLAY}')
@@ -453,7 +528,7 @@ class QueueAndPlayer {
             return
           }
 
-          const songInfoFromYoutube = await ytdl.getInfo(contentURL)
+          const songInfoFromYoutube = await playDL.video_info(contentURL)
 
           const song = new Song(songInfoFromYoutube)
 
@@ -490,6 +565,14 @@ class QueueAndPlayer {
       if (contentType === 'playlist') {
         try {
           this.setLoading(true)
+
+          const lookingEmbeds = [createLookingForPlaylist(contentURL)]
+
+          const textChannel = this.getTextChannel()
+
+          textChannel.send({
+            embeds: lookingEmbeds,
+          })
 
           const playlist = await ytpl(contentURL)
 
@@ -545,14 +628,23 @@ class QueueAndPlayer {
 
     const voiceChannel = this.getVoiceChannel()
 
-    const connection = joinVoiceChannel({
-      channelId: voiceChannel.id,
-      guildId: voiceChannel.guild.id,
-      adapterCreator: voiceChannel.guild
-        .voiceAdapterCreator as DiscordGatewayAdapterCreator,
-    })
+    if (!message.guild) {
+      Logger.warn('There is no message guild! - {PLAY}')
+      return
+    }
 
-    this.initVoiceConnection(connection)
+    const currentVoiceConnection = this.getVoiceConnection()
+
+    if (!currentVoiceConnection) {
+      const connection = joinVoiceChannel({
+        channelId: voiceChannel.id,
+        guildId: message.guild.id,
+        adapterCreator: message.guild
+          .voiceAdapterCreator as DiscordGatewayAdapterCreator,
+      })
+
+      this.initVoiceConnection(connection)
+    }
 
     const voiceConnection = this.getVoiceConnection()
 
@@ -570,13 +662,24 @@ class QueueAndPlayer {
       return
     }
 
-    const player = this.createDiscordAudioPlayer()
+    const currentPlayer = this.getPlayer()
+
+    if (!currentPlayer) {
+      this.createDiscordAudioPlayer()
+    }
+
+    const player = this.getPlayer()
+
+    if (!player) {
+      Logger.warn('There is no discord player instance! - {PLAY}')
+      return
+    }
 
     /**
      * Event listeners
      */
 
-    voiceConnection.on(VoiceConnectionStatus.Ready, () => {
+    voiceConnection.on(VoiceConnectionStatus.Ready, async () => {
       Logger.info('Voice Connection is Ready! - {PLAY}')
 
       const songQueue = this.getSongQueue()
@@ -586,9 +689,7 @@ class QueueAndPlayer {
         return
       }
 
-      const song = this.isLooped
-        ? songQueue[0]
-        : this.removeSongFromQueue(message)
+      const song = songQueue[0]
 
       if (!song) {
         Logger.info('List is ended! - {PLAY}')
@@ -597,37 +698,12 @@ class QueueAndPlayer {
 
       if (!message) return
 
-      const embeds = [createStartPlayingEmbed(song, message)]
+      this.playSongThroughDiscordPlayer(message, song)
 
-      const textChannel = this.getTextChannel()
-
-      textChannel.send({ embeds })
-
-      const audioResoure = this.createResource(song)
-
-      if (!audioResoure) {
-        Logger.warn('There is not audio resourse to play! - {PLAY}')
-        return
-      }
-
-      this.setIsPlaying(true)
-
-      const isSubscription = voiceConnection.subscribe(player)
-
-      if (isSubscription) {
-        Logger.info('Player is subscribed! - {PLAY}')
-      }
-
-      player.play(audioResoure)
-
-      setTimeout(() => {
-        console.log(player.state.status)
-      }, 8000)
+      return
     })
 
     player.on(AudioPlayerStatus.Idle, () => {
-      this.setIsPlaying(false)
-
       const songQueue = this.getSongQueue()
 
       if (songQueue.length === 0) {
@@ -635,8 +711,16 @@ class QueueAndPlayer {
         return
       }
 
-      this.play(message, {
-        ignoreParse: true,
+      const isLooped = this.getIsLooped()
+
+      if (!isLooped) {
+        this.removeSongFromQueue()
+      }
+
+      const nextSong = this.getSongQueue()[0]
+
+      this.playSongThroughDiscordPlayer(message, nextSong, {
+        dontShowNextSong: true,
       })
     })
 
@@ -672,9 +756,11 @@ class QueueAndPlayer {
     const textChannel = this.getTextChannel()
     textChannel.send({ embeds })
 
-    this.play(message, {
-      ignoreParse: true,
-    })
+    const songsQueue = this.getSongQueue()
+
+    const songToPlay = songsQueue[0]
+
+    this.playSongThroughDiscordPlayer(message, songToPlay)
 
     Logger.info('Skipped song! - {SKIP SONG}')
     return
@@ -705,10 +791,7 @@ class QueueAndPlayer {
       return
     }
 
-    const isDiscordPlayerPaused =
-      player.state.status === AudioPlayerStatus.Paused
-
-    const isPaused = !this.getIsPlaying() && isDiscordPlayerPaused
+    const isPaused = player.state.status === AudioPlayerStatus.Paused
 
     if (isPaused) {
       const embeds = [createErrorEmbed("Can't pause already paused song!")]
@@ -716,7 +799,7 @@ class QueueAndPlayer {
       return
     }
 
-    const isPlayerPausedSuccessfully = player.pause(true)
+    const isPlayerPausedSuccessfully = player.pause()
 
     const textChannel = this.getTextChannel()
 
@@ -738,13 +821,10 @@ class QueueAndPlayer {
 
     textChannel.send({ embeds })
 
-    this.setIsPlaying(false)
     return
   }
 
   public resumeSong(message: Message): void {
-    const isPlaying = this.getIsPlaying()
-
     const songQueue = this.getSongQueue()
 
     if (songQueue.length <= 0) {
@@ -760,16 +840,18 @@ class QueueAndPlayer {
       return
     }
 
-    if (isPlaying) {
-      const embeds = [createErrorEmbed("Can't resume already playing song!")]
-      message.reply({ embeds })
-      return
-    }
-
     const player = this.getPlayer()
 
     if (!player) {
-      Logger.info('There is no player! - {RESUME SONG}')
+      Logger.warn('There is no active player! - {RESUME SONG}')
+      return
+    }
+
+    const isPlaying = player.state.status === AudioPlayerStatus.Playing
+
+    if (isPlaying) {
+      const embeds = [createErrorEmbed("Can't resume already playing song!")]
+      message.reply({ embeds })
       return
     }
 
@@ -781,7 +863,15 @@ class QueueAndPlayer {
       return
     }
 
-    this.setIsPlaying(true)
+    const song = songQueue[0]
+    const isPaused = player.state.status === AudioPlayerStatus.Paused
+
+    const embeds = [createPauseEmbed(song, message, isPaused)]
+
+    const textChannel = this.getTextChannel()
+
+    textChannel.send({ embeds })
+
     return
   }
 
@@ -808,6 +898,8 @@ class QueueAndPlayer {
   public getInfoAboutCurrentSong(message: Message): void {
     const songQueue = this.getSongQueue()
 
+    const currentSong = songQueue[0]
+
     if (songQueue.length <= 0) {
       Logger.info(
         'Currently no song that is playing! - {GET INFO ABOUT CURRENT SONG}'
@@ -818,8 +910,6 @@ class QueueAndPlayer {
 
       return
     }
-
-    const currentSong = songQueue[0]
 
     const embeds = [createCurrentSongEmbed(currentSong, message)]
 

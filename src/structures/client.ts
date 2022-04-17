@@ -7,7 +7,12 @@ import QueueAndPlayer from './queue'
 
 const environment = config.BUILD_MODE ? config.BUILD_MODE : 'development'
 
-const intents = new Discord.Intents(32767)
+const intents = new Discord.Intents([
+  Discord.Intents.FLAGS.GUILDS,
+  Discord.Intents.FLAGS.GUILD_MESSAGES,
+  Discord.Intents.FLAGS.GUILD_VOICE_STATES,
+  Discord.Intents.FLAGS.DIRECT_MESSAGES,
+])
 
 /**
  * Main bot instance that contains all instances to control bot
@@ -23,6 +28,7 @@ export class Client {
       ...options,
       intents,
       retryLimit: 10,
+      partials: ['CHANNEL', 'MESSAGE'],
     })
     this.prefix = config.prefix
     this.commands = new Discord.Collection()

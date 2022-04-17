@@ -1,4 +1,4 @@
-import ytdl from 'ytdl-core'
+import playDL from 'play-dl'
 import { Result as Playlist, Item } from 'ytpl'
 
 import { Song } from '../structures/song'
@@ -22,7 +22,7 @@ const parsePlaylist = async (playlist: Playlist): Promise<ReturnResponse[]> => {
   const promises = itemsToParse.map(async (item) => {
     try {
       const url = item.shortUrl
-      const songInfoFromYoutube = await ytdl.getInfo(url)
+      const songInfoFromYoutube = await playDL.video_info(url)
 
       const response: ReturnResponse = {
         successful: true,

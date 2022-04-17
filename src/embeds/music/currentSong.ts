@@ -12,7 +12,7 @@ export const createCurrentSongEmbed = (song: Song, message: Message) => {
 
   const embed = new MessageEmbed()
     .setColor('#FFFFFF')
-    .setTitle(song.title)
+    .setTitle(song.title || 'No title!')
     .setURL(song.url)
     .setAuthor({
       name: 'Current song is',
