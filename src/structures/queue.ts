@@ -451,7 +451,6 @@ class QueueAndPlayer {
     this.clearTimeout()
 
     Logger.info('Started play song from queue! - {PLAY}')
-    console.log(' ')
   }
 
   /**
@@ -715,7 +714,9 @@ class QueueAndPlayer {
       return
     })
 
-    player.on(AudioPlayerStatus.Idle, () => {
+    player.on(AudioPlayerStatus.Idle, async () => {
+      Logger.info('Player now is idling! - {PLAY}')
+
       const songQueue = this.getSongQueue()
 
       if (songQueue.length === 0) {
