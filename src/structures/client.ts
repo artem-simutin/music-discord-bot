@@ -4,6 +4,7 @@ import * as fs from 'fs'
 import { Event } from './event'
 import config from '../../config/config'
 import QueueAndPlayer from './queue'
+import Logger from '../services/loggers'
 
 const environment = config.BUILD_MODE ? config.BUILD_MODE : 'development'
 
@@ -44,7 +45,7 @@ export class Client {
         .filter((file) => file.endsWith('.ts'))
         .forEach((file) => {
           const command = require(`../commands/${file}`)
-          console.log(`Command ### ${command.name} ### loaded`)
+          Logger.command(command.name)
           this.commands.set(command.name, command)
         })
 
@@ -52,7 +53,7 @@ export class Client {
         .filter((file) => file.endsWith('.ts'))
         .forEach((file) => {
           const event: Event = require(`../events/${file}`)
-          console.log(`Event @@@ ${event.event} @@@ loaded`)
+          Logger.event(event.event)
           this.discordClient.on(event.event, event.handler.bind(null, this))
         })
     } else {
@@ -63,7 +64,7 @@ export class Client {
         .filter((file) => file.endsWith('.js'))
         .forEach((file) => {
           const command = require(`../commands/${file}`)
-          console.log(`Command ### ${command.name} ### loaded`)
+          Logger.command(command.name)
           this.commands.set(command.name, command)
         })
 
@@ -71,7 +72,7 @@ export class Client {
         .filter((file) => file.endsWith('.js'))
         .forEach((file) => {
           const event: Event = require(`../events/${file}`)
-          console.log(`Event @@@ ${event.event} @@@ loaded`)
+          Logger.event(event.event)
           this.discordClient.on(event.event, event.handler.bind(null, this))
         })
     }

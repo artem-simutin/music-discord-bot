@@ -236,22 +236,16 @@ class QueueAndPlayer {
    * Creates audio resourse through "ytdl-core"
    * @param song - song builded instance with requred params
    */
-  private async createResource(song: Song) {
-    // const options = song.isLive
-    //   ? LIVE_AUDIO_STREAM_OPTIONS
-    //   : AUDIO_FROM_VIDEO_STREAM_OPTIONS
-
+  private async createResource(song: Song): Promise<void> {
     const stream = await playDL.stream(song.url)
 
-    const resource = createAudioResource(stream.stream, {
+    this.resource = createAudioResource(stream.stream, {
       inputType: stream.type,
     })
 
-    this.resource = resource
-
     Logger.info('Audio resource is created! - {CREATE AUDIO RESOURCE}')
 
-    return resource
+    return
   }
 
   /**
@@ -268,9 +262,9 @@ class QueueAndPlayer {
    * @returns new array length
    */
   private addSongToQueue(song: Song, message?: Message): void {
-    Logger.info('Song is added to the queue! - {ADD SONG TO QUEUE}')
-
     this.songs.push(song)
+
+    Logger.info('Song is added to the queue! - {ADD SONG TO QUEUE}')
 
     const songQueue = this.getSongQueue()
 
@@ -291,6 +285,7 @@ class QueueAndPlayer {
    * @returns new array length
    */
   private addPlaylistToQueue(songs: Song[]): number {
+    Logger.info('Added playlist to the queue! - {ADD PLAYLIST TO QUEUE}')
     this.songs = [...this.songs, ...songs]
     return this.songs.length
   }
@@ -331,7 +326,6 @@ class QueueAndPlayer {
    */
   private createDisconnectTimeout() {
     Logger.info('Created disconnect timeout! - {CREATE DISCONNECT TIMEOUT}')
-    this.clearTimeout()
 
     const timeout = setTimeout(() => {
       this.disconnectBotFromVoiceChannel()
@@ -347,12 +341,14 @@ class QueueAndPlayer {
     const timeout = this.timeout
 
     if (!timeout) {
-      Logger.warn('There is no timeout')
+      Logger.warn('There is no timeout! - {CLEAR TIMEOUT}')
       return
     }
 
     clearTimeout(timeout)
     this.timeout = null
+
+    Logger.info('Timeout is cleaned! - {CLEAR TIMEOUT}')
   }
 
   /**
@@ -368,23 +364,19 @@ class QueueAndPlayer {
   private disconnectBotFromVoiceChannel() {
     const voiceConnection = this.getVoiceConnection()
 
-    if (voiceConnection) {
-      Logger.info(
-        'Disconnected from voice channel! - {DISCONNECT BOT FROM VOICE CHANNEL}'
-      )
+    if (!voiceConnection) return
 
-      if (!voiceConnection) return
+    voiceConnection.destroy()
 
-      voiceConnection.destroy()
+    const embeds = [createDisconnectEmbed()]
 
-      const embeds = [createDisconnectEmbed()]
+    Logger.info(
+      'Disconnected from voice channel! - {DISCONNECT BOT FROM VOICE CHANNEL}'
+    )
 
-      const textChannel = this.getTextChannel()
+    const textChannel = this.getTextChannel()
 
-      textChannel.send({ embeds })
-
-      return
-    }
+    textChannel.send({ embeds })
 
     this.discordAudioPlayer = initialPlayerState.discordAudioPlayer
     this.isLoading = initialPlayerState.isLoading
@@ -403,6 +395,14 @@ class QueueAndPlayer {
   }
 
   /**
+   * Gets first song in queue or undefined if not found
+   * @returns song or undefined
+   */
+  private getCurrentSong(): Song | undefined {
+    return this.getSongQueue()[0]
+  }
+
+  /**
    * Plays passed song through discord player
    */
   private async playSongThroughDiscordPlayer(
@@ -410,16 +410,6 @@ class QueueAndPlayer {
     song: Song,
     options?: PlaySongThroughDiscordPlayerOpions
   ) {
-    if (!options?.dontShowNextSong) {
-      const embeds = [createStartPlayingEmbed(song, message)]
-
-      const textChannel = this.getTextChannel()
-
-      textChannel.send({ embeds })
-    }
-
-    const audioResoure = await this.createResource(song)
-
     const voiceConnection = this.getVoiceConnection()
 
     if (!voiceConnection) {
@@ -429,6 +419,10 @@ class QueueAndPlayer {
       return
     }
 
+    await this.createResource(song)
+
+    const audioResoure = this.getAudioResource()
+
     if (!audioResoure) {
       Logger.warn('There is no audio resourse to play! - {PLAY}')
       return
@@ -437,7 +431,9 @@ class QueueAndPlayer {
     const player = this.getPlayer()
 
     if (!player) {
-      Logger.warn('There is no player! - {PLAY SONG THROUGH DISCORD PLAYER}')
+      Logger.warn(
+        'There is no player! Player created - {PLAY SONG THROUGH DISCORD PLAYER}'
+      )
       return
     }
 
@@ -445,35 +441,150 @@ class QueueAndPlayer {
 
     if (isSubscription) {
       Logger.info('Player is subscribed! - {PLAY}')
-      Logger.info(' ')
+    }
+
+    if (!options?.dontShowNextSong) {
+      const embeds = [createStartPlayingEmbed(song, message)]
+
+      const textChannel = this.getTextChannel()
+
+      textChannel.send({ embeds })
     }
 
     player.play(audioResoure)
+
+    this.clearTimeout()
+
     Logger.info('Started play song from queue! - {PLAY}')
+    console.log(' ')
   }
 
   /**
-   * Gets current playing song or null if no current playing song
-   * @returns playing song or null
+   * Gets info about song by YouTube URL and adds it to the queue
+   * @param message - user's message
+   * @param url - song YouTube url
    */
-  // private getCurrentSong(): Song | null {
-  //   return this.currentPlayingSong
-  // }
+  private async getInfoAboutSong(message: Message, url: string) {
+    try {
+      this.setLoading(true)
+
+      const isValidURL = await playDL.validate(url)
+
+      if (!isValidURL) {
+        Logger.warn('Is not valid YouTube URL! - {PLAY}')
+        const embeds = [createErrorEmbed('Is not valid YouTube URL!')]
+
+        if (!message) {
+          Logger.warn('No message to reply on invalid URL! - {PLAY}')
+          return
+        }
+        message.reply({ embeds })
+        return
+      }
+
+      const embeds = [createLookingForSong(url)]
+
+      const textChannel = this.getTextChannel()
+
+      await textChannel.send({ embeds })
+
+      const songInfoFromYoutube = await playDL.video_info(url)
+
+      const song = new Song(songInfoFromYoutube)
+
+      this.addSongToQueue(song, message)
+    } catch (error) {
+      Logger.error('Something went wrong with getting song! - {PLAY}')
+      const embeds = [
+        createErrorEmbed('Something went wrong with getting song!'),
+      ]
+      const textChannel = this.getTextChannel()
+      textChannel.send({ embeds })
+      return
+    } finally {
+      this.setLoading(false)
+    }
+  }
 
   /**
-   * Sets curernt playing song
-   * @param song current song
+   * Gets info about playlist by YouTube URL and adds it to the queue
+   * @param message - user's message
+   * @param url - playlisst YouTube url
    */
-  // private setCurrentSong(song: Song): void {
-  //   this.currentPlayingSong = song
-  // }
+  private async getInfoAboutPlaylist(message: Message, url: string) {
+    try {
+      this.setLoading(true)
 
-  /**
-   * Clears current playing song (sets it as null)
-   */
-  // private clearCurrentSong(): void {
-  //   this.currentPlayingSong = null
-  // }
+      const lookingEmbeds = [createLookingForPlaylist(url)]
+
+      const textChannel = this.getTextChannel()
+
+      textChannel.send({
+        embeds: lookingEmbeds,
+      })
+
+      const playlist = await ytpl(url)
+
+      const parsedSongs = await parsePlaylist(playlist)
+
+      const validPlaylistSongs = parsedSongs.filter((song) => {
+        if (song.successful === false && song._failedItem) {
+          const embeds = [
+            createErrorEmbed(
+              `Cant add song to queue: ${song._failedItem.title}!`
+            ),
+          ]
+          const textChannel = this.getTextChannel()
+          textChannel.send({ embeds })
+          return false
+        }
+
+        return true
+      }) as SuccessfulReturnResponse[]
+
+      const songsArrayFromParsedPlaylist = validPlaylistSongs.map(
+        (validSong) => validSong.item
+      )
+
+      this.addPlaylistToQueue(songsArrayFromParsedPlaylist)
+
+      if (!message) return
+
+      const embeds = [
+        createPlaylistInfoEmbed(playlist, this.getSongQueue(), message),
+      ]
+
+      message.reply({ embeds })
+    } catch (error) {
+      Logger.error('Failed to parse playlist and add it to the queue! - {PLAY}')
+      if (!message) return
+      const embeds = [
+        createErrorEmbed('Something went wrong while parsing playlist!'),
+      ]
+      message.reply({ embeds })
+      return
+    } finally {
+      this.setLoading(false)
+    }
+  }
+
+  private forcePlay(message: Message) {
+    const songQueue = this.getSongQueue()
+
+    if (songQueue.length === 0) {
+      Logger.warn('There is no song to play: songs queue is empty! - {PLAY}')
+      return
+    }
+
+    const song = this.getCurrentSong()
+
+    if (!song) {
+      Logger.info('List is ended! - {PLAY}')
+      return
+    }
+
+    this.playSongThroughDiscordPlayer(message, song)
+  }
 
   /**
    * =============================================
@@ -488,147 +599,6 @@ class QueueAndPlayer {
       Logger.warn('Content is already in loding state! - {PLAY}')
       return
     }
-
-    this.clearTimeout()
-
-    const isIgnoreParse = options?.ignoreParse
-    const args = options?.args
-
-    if (!isIgnoreParse) {
-      // Check are arguments in user's message
-      if (!args || (args && args.length <= 0)) {
-        Logger.warn('No URL to play! - {PLAY}')
-        const embeds = [
-          createErrorEmbed('To play song, pass URL to the YouTube material!'),
-        ]
-        message.reply({ embeds })
-        return
-      }
-
-      const contentURL = args[1]
-      // TODO: implement audio effects functionality
-      // const playbackArgs = args.slice(1) - that will be useful for audio effects implementation
-
-      const contentType = this.determineContentType(contentURL)
-
-      /**
-       * If content type is "song"
-       */
-      if (contentType === 'song') {
-        try {
-          this.setLoading(true)
-
-          const isValidURL = await playDL.validate(contentURL)
-
-          if (!isValidURL) {
-            Logger.warn('Is not valid YouTube URL! - {PLAY}')
-            const embeds = [createErrorEmbed('Is not valid YouTube URL!')]
-
-            if (!message) {
-              Logger.warn('No message to reply on invalid URL! - {PLAY}')
-              return
-            }
-            message.reply({ embeds })
-            return
-          }
-
-          const songInfoFromYoutube = await playDL.video_info(contentURL)
-
-          const song = new Song(songInfoFromYoutube)
-
-          this.addSongToQueue(song, message)
-
-          if (!message) {
-            Logger.warn(
-              'There is not message to reply on song add to queue! - {PLAY}'
-            )
-            return
-          }
-
-          const embeds = [createLookingForSong(contentURL)]
-
-          const textChannel = this.getTextChannel()
-
-          textChannel.send({ embeds })
-        } catch (error) {
-          Logger.error('Something went wrong with getting song! - {PLAY}')
-          const embeds = [
-            createErrorEmbed('Something went wrong with getting song!'),
-          ]
-          const textChannel = this.getTextChannel()
-          textChannel.send({ embeds })
-          return
-        } finally {
-          this.setLoading(false)
-        }
-      }
-
-      /**
-       * If content type is "playlist"
-       */
-      if (contentType === 'playlist') {
-        try {
-          this.setLoading(true)
-
-          const lookingEmbeds = [createLookingForPlaylist(contentURL)]
-
-          const textChannel = this.getTextChannel()
-
-          textChannel.send({
-            embeds: lookingEmbeds,
-          })
-
-          const playlist = await ytpl(contentURL)
-
-          const parsedSongs = await parsePlaylist(playlist)
-
-          const validPlaylistSongs = parsedSongs.filter((song) => {
-            if (song.successful === false && song._failedItem) {
-              const embeds = [
-                createErrorEmbed(
-                  `Cant add song to queue: ${song._failedItem.title}!`
-                ),
-              ]
-              const textChannel = this.getTextChannel()
-              textChannel.send({ embeds })
-              return false
-            }
-
-            return true
-          }) as SuccessfulReturnResponse[]
-
-          const songsArrayFromParsedPlaylist = validPlaylistSongs.map(
-            (validSong) => validSong.item
-          )
-
-          this.addPlaylistToQueue(songsArrayFromParsedPlaylist)
-
-          if (!message) return
-
-          const embeds = [
-            createPlaylistInfoEmbed(playlist, this.getSongQueue(), message),
-          ]
-
-          message.reply({ embeds })
-        } catch (error) {
-          Logger.error(
-            'Failed to parse playlist and add it to the queue! - {PLAY}'
-          )
-          if (!message) return
-          const embeds = [
-            createErrorEmbed('Something went wrong while parsing playlist!'),
-          ]
-          message.reply({ embeds })
-          return
-        } finally {
-          this.setLoading(false)
-        }
-      }
-    }
-
-    /**
-     * Music plalying section
-     */
 
     const voiceChannel = this.getVoiceChannel()
 
@@ -666,6 +636,45 @@ class QueueAndPlayer {
       return
     }
 
+    const isIgnoreParse = options?.ignoreParse
+    const args = options?.args
+
+    if (!isIgnoreParse) {
+      // Check are arguments in user's message
+      if (!args || (args && args.length <= 0)) {
+        Logger.warn('No URL to play! - {PLAY}')
+        const embeds = [
+          createErrorEmbed('To play song, pass URL to the YouTube material!'),
+        ]
+        message.reply({ embeds })
+        return
+      }
+
+      const contentURL = args[1]
+      // TODO: implement audio effects functionality
+      // const playbackArgs = args.slice(1) - that will be useful for audio effects implementation
+
+      const contentType = this.determineContentType(contentURL)
+
+      /**
+       * If content type is "song"
+       */
+      if (contentType === 'song') {
+        await this.getInfoAboutSong(message, contentURL)
+      }
+
+      /**
+       * If content type is "playlist"
+       */
+      if (contentType === 'playlist') {
+        this.getInfoAboutPlaylist(message, contentURL)
+      }
+    }
+
+    /**
+     * Music plalying section
+     */
+
     const currentPlayer = this.getPlayer()
 
     if (!currentPlayer) {
@@ -679,6 +688,26 @@ class QueueAndPlayer {
       return
     }
 
+    const isCurrentVoiceConnectionStatusReady =
+      voiceConnection.state.status === VoiceConnectionStatus.Ready
+    const isCurrentPlayerStateIdle =
+      player.state.status === AudioPlayerStatus.Idle
+
+    /**
+     * Play song if:
+     * - Voice connection is stable
+     * - Player is idling
+     * (case when song is ended and user adds new song)
+     */
+    if (
+      player &&
+      voiceConnection &&
+      isCurrentPlayerStateIdle &&
+      isCurrentVoiceConnectionStatusReady
+    ) {
+      this.forcePlay(message)
+    }
+
     /**
      * Event listeners
      */
@@ -686,23 +715,7 @@ class QueueAndPlayer {
     voiceConnection.on(VoiceConnectionStatus.Ready, async () => {
       Logger.info('Voice Connection is Ready! - {PLAY}')
 
-      const songQueue = this.getSongQueue()
-
-      if (songQueue.length <= 0) {
-        Logger.warn('There is not song to play: songs queue is empty! - {PLAY}')
-        return
-      }
-
-      const song = songQueue[0]
-
-      if (!song) {
-        Logger.info('List is ended! - {PLAY}')
-        return
-      }
-
-      if (!message) return
-
-      this.playSongThroughDiscordPlayer(message, song)
+      this.forcePlay(message)
 
       return
     })
@@ -721,7 +734,12 @@ class QueueAndPlayer {
         this.removeSongFromQueue()
       }
 
-      const nextSong = this.getSongQueue()[0]
+      const nextSong = this.getCurrentSong()
+
+      if (!nextSong) {
+        Logger.info('Song queue is empty! - {PLAY}')
+        return
+      }
 
       if (!nextSong) {
         Logger.info('Song queue is ended! - {PLAY}')
@@ -765,9 +783,12 @@ class QueueAndPlayer {
     const textChannel = this.getTextChannel()
     textChannel.send({ embeds })
 
-    const songsQueue = this.getSongQueue()
+    const songToPlay = this.getCurrentSong()
 
-    const songToPlay = songsQueue[0]
+    if (!songToPlay) {
+      Logger.info('No song to play - queue is empty! - {SKIP SONG}')
+      return
+    }
 
     if (!songToPlay) {
       Logger.info('List is ended! - {SKIP SONG}')
@@ -777,6 +798,7 @@ class QueueAndPlayer {
     this.playSongThroughDiscordPlayer(message, songToPlay)
 
     Logger.info('Skipped song! - {SKIP SONG}')
+
     return
   }
 
@@ -807,7 +829,9 @@ class QueueAndPlayer {
 
     const isPaused = player.state.status === AudioPlayerStatus.Paused
 
-    const currentSong = songQueue[0]
+    const currentSong = this.getCurrentSong()
+
+    if (!currentSong) return
 
     if (isPaused) {
       const embeds = [createPauseEmbed(currentSong, message, false)]
@@ -841,7 +865,7 @@ class QueueAndPlayer {
   public resumeSong(message: Message): void {
     const songQueue = this.getSongQueue()
 
-    if (songQueue.length <= 0) {
+    if (songQueue.length === 0) {
       Logger.info(
         'There is no song to resume! Song queue is empty! - {RESUME SONG}'
       )
@@ -861,9 +885,14 @@ class QueueAndPlayer {
       return
     }
 
-    const isPlaying = player.state.status === AudioPlayerStatus.Playing
+    const song = this.getCurrentSong()
 
-    const song = songQueue[0]
+    if (!song) {
+      Logger.info('No current song - song queue is empty! - {RESUME SONG}')
+      return
+    }
+
+    const isPlaying = player.state.status === AudioPlayerStatus.Playing
 
     if (isPlaying) {
       const embeds = [createUnPauseEmbed(song, message, false)]
@@ -878,6 +907,7 @@ class QueueAndPlayer {
 
       return
     }
+
     const isPaused = player.state.status === AudioPlayerStatus.Paused
 
     const embeds = [createUnPauseEmbed(song, message, !isPaused)]
@@ -912,9 +942,9 @@ class QueueAndPlayer {
   public getInfoAboutCurrentSong(message: Message): void {
     const songQueue = this.getSongQueue()
 
-    const currentSong = songQueue[0]
+    const currentSong = this.getCurrentSong()
 
-    if (songQueue.length <= 0) {
+    if (songQueue.length === 0 || !currentSong) {
       Logger.info(
         'Currently no song that is playing! - {GET INFO ABOUT CURRENT SONG}'
       )
