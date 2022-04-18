@@ -19,10 +19,6 @@ import {
 } from 'discord.js'
 import ytpl from 'ytpl'
 
-// import {
-//   AUDIO_FROM_VIDEO_STREAM_OPTIONS,
-//   LIVE_AUDIO_STREAM_OPTIONS,
-// } from '../../config/audioSettings'
 import config from '../../config/config'
 import { createDisconnectEmbed } from '../embeds/disconnect'
 import { createErrorEmbed } from '../embeds/error'
@@ -384,8 +380,7 @@ class QueueAndPlayer {
     this.resource = initialPlayerState.resource
     this.volume = initialPlayerState.volume
     this.voiceConnection = null
-
-    this.clearTimeout()
+    this.timeout = null
 
     Logger.info('Cleared timeout! - {DISCONNECT BOT FROM VOICE CHANNEL}')
 
@@ -741,14 +736,13 @@ class QueueAndPlayer {
         return
       }
 
-      if (!nextSong) {
-        Logger.info('Song queue is ended! - {PLAY}')
-        return
-      }
-
       this.playSongThroughDiscordPlayer(message, nextSong, {
         dontShowNextSong: true,
       })
+    })
+
+    player.on(AudioPlayerStatus.Playing, () => {
+      this.clearTimeout()
     })
 
     voiceConnection.on(VoiceConnectionStatus.Destroyed, () => {
