@@ -1,7 +1,7 @@
 const dotenv = require('dotenv')
 dotenv.config()
 
-type EnvType = 'production' | 'development'
+export type EnvType = 'production' | 'development'
 
 const config = {
   BUILD_MODE: process.env.BUILD_MODE as EnvType | undefined,
