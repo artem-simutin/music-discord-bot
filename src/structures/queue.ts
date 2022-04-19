@@ -620,41 +620,6 @@ class QueueAndPlayer {
       return
     }
 
-    const isIgnoreParse = options?.ignoreParse
-    const args = options?.args
-
-    if (!isIgnoreParse) {
-      // Check are arguments in user's message
-      if (!args || (args && args.length <= 0)) {
-        Logger.warn('No URL to play! - {PLAY}')
-        const embeds = [
-          createErrorEmbed('To play song, pass URL to the YouTube material!'),
-        ]
-        message.reply({ embeds })
-        return
-      }
-
-      const contentURL = args[1]
-      // TODO: implement audio effects functionality
-      // const playbackArgs = args.slice(1) - that will be useful for audio effects implementation
-
-      const contentType = this.determineContentType(contentURL)
-
-      /**
-       * If content type is "song"
-       */
-      if (contentType === 'song') {
-        await this.getInfoAboutSong(message, contentURL)
-      }
-
-      /**
-       * If content type is "playlist"
-       */
-      if (contentType === 'playlist') {
-        await this.getInfoAboutPlaylist(message, contentURL)
-      }
-    }
-
     /**
      * Music plalying section
      */
@@ -693,6 +658,41 @@ class QueueAndPlayer {
       textChannel.send({ embeds })
 
       return
+    }
+
+    const isIgnoreParse = options?.ignoreParse
+    const args = options?.args
+
+    if (!isIgnoreParse) {
+      // Check are arguments in user's message
+      if (!args || (args && args.length <= 0)) {
+        Logger.warn('No URL to play! - {PLAY}')
+        const embeds = [
+          createErrorEmbed('To play song, pass URL to the YouTube material!'),
+        ]
+        message.reply({ embeds })
+        return
+      }
+
+      const contentURL = args[1]
+      // TODO: implement audio effects functionality
+      // const playbackArgs = args.slice(2) - that will be useful for audio effects implementation
+
+      const contentType = this.determineContentType(contentURL)
+
+      /**
+       * If content type is "song"
+       */
+      if (contentType === 'song') {
+        await this.getInfoAboutSong(message, contentURL)
+      }
+
+      /**
+       * If content type is "playlist"
+       */
+      if (contentType === 'playlist') {
+        await this.getInfoAboutPlaylist(message, contentURL)
+      }
     }
 
     const player = this.getPlayer()
@@ -734,17 +734,17 @@ class QueueAndPlayer {
       newOnePlayer.on(AudioPlayerStatus.Idle, async () => {
         Logger.info('Player now is idling! - {PLAY}')
 
+        const isLooped = this.getIsLooped()
+
+        if (!isLooped) {
+          this.removeSongFromQueue()
+        }
+
         const songQueue = this.getSongQueue()
 
         if (songQueue.length === 0) {
           this.createDisconnectTimeout()
           return
-        }
-
-        const isLooped = this.getIsLooped()
-
-        if (!isLooped) {
-          this.removeSongFromQueue()
         }
 
         const nextSong = this.getCurrentSong()
