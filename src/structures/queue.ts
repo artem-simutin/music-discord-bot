@@ -456,8 +456,6 @@ class QueueAndPlayer {
 
     player.play(audioResoure)
 
-    this.clearTimeout()
-
     Logger.info('Started play song from queue! - {PLAY}')
   }
 
@@ -759,6 +757,10 @@ class QueueAndPlayer {
         await this.playSongThroughDiscordPlayer(message, nextSong, {
           dontShowNextSong: true,
         })
+      })
+
+      newOnePlayer.on(AudioPlayerStatus.Playing, () => {
+        this.clearTimeout()
       })
 
       return
