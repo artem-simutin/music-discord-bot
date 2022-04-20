@@ -486,7 +486,7 @@ class QueueAndPlayer {
 
       const textChannel = this.getTextChannel()
 
-      await textChannel.send({ embeds })
+      textChannel.send({ embeds })
 
       const songInfoFromYoutube = await playDL.video_info(url)
 
