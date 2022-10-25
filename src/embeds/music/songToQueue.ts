@@ -1,7 +1,8 @@
-import { Message, MessageEmbed } from 'discord.js'
-import { parseDuration } from '../../services/parceDuration'
+import { Message } from 'discord.js'
+import { parseDuration } from '../../services/parseDuration'
 import { formatToKMB } from '../../services/formatToKMB'
 import { Song } from '../../structures/song'
+import { createBaseEmbed } from '../../helpers/createBaseEmbed'
 
 export const createAddSongToQueue = (
   song: Song,
@@ -14,8 +15,7 @@ export const createAddSongToQueue = (
     authorImage = message.author.avatarURL() as string
   }
 
-  const embed = new MessageEmbed()
-    .setColor('#00FF47')
+  const embed = createBaseEmbed('DARK_GREEN')
     .setTitle(song.title || 'No title!')
     .setURL(song.url)
     .setAuthor({
@@ -52,12 +52,13 @@ export const createAddSongToQueue = (
             .reduce((acc, current) => acc + current, 0)
         ),
         inline: true,
+      },
+      {
+        name: ':calendar_spiral: Publish date',
+        value: song.publishDate || '',
+        inline: true,
       }
     )
-    .setTimestamp()
-    .setFooter({
-      text: 'Powered by DELAMAIN',
-    })
 
   return embed
 }

@@ -1,4 +1,5 @@
-import { Message, MessageEmbed } from 'discord.js'
+import { Message } from 'discord.js'
+import { createBaseEmbed } from '../../helpers/createBaseEmbed'
 import { Song } from '../../structures/song'
 
 export const createPauseEmbed = (
@@ -12,8 +13,7 @@ export const createPauseEmbed = (
     authorImage = message.author.avatarURL() as string
   }
 
-  const embed = new MessageEmbed()
-    .setColor('#FFE895')
+  const embed = createBaseEmbed('YELLOW')
     .setTitle(isPaused ? `:pause_button:  ${song.title}` : ':open_hands:  Nope')
     .setURL(song.url)
     .setAuthor({
@@ -21,10 +21,6 @@ export const createPauseEmbed = (
       iconURL: authorImage,
     })
     .setThumbnail(song.thumbnail.url)
-    .setTimestamp()
-    .setFooter({
-      text: 'Powered by DELAMAIN',
-    })
 
   return embed
 }

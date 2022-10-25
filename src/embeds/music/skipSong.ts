@@ -1,4 +1,5 @@
-import { Message, MessageEmbed } from 'discord.js'
+import { Message } from 'discord.js'
+import { createBaseEmbed } from '../../helpers/createBaseEmbed'
 import { Song } from '../../structures/song'
 
 export const createSkipEmbed = (song: Song, message: Message) => {
@@ -8,8 +9,7 @@ export const createSkipEmbed = (song: Song, message: Message) => {
     authorImage = message.author.avatarURL() as string
   }
 
-  const embed = new MessageEmbed()
-    .setColor('#400072')
+  const embed = createBaseEmbed('PURPLE')
     .setTitle(song.title || 'No title!')
     .setURL(song.url)
     .setAuthor({
@@ -17,10 +17,6 @@ export const createSkipEmbed = (song: Song, message: Message) => {
       iconURL: authorImage,
     })
     .setThumbnail(song.thumbnail.url)
-    .setTimestamp()
-    .setFooter({
-      text: 'Powered by DELAMAIN',
-    })
 
   return embed
 }

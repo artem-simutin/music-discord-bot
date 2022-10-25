@@ -1,8 +1,9 @@
-import { Message, MessageEmbed } from 'discord.js'
+import { Message } from 'discord.js'
 
-import { parseDuration } from '../../services/parceDuration'
+import { parseDuration } from '../../services/parseDuration'
 import ytpl = require('ytpl')
 import { Song } from '../../structures/song'
+import { createBaseEmbed } from '../../helpers/createBaseEmbed'
 
 export const createPlaylistInfoEmbed = (
   playlist: ytpl.Result,
@@ -19,8 +20,7 @@ export const createPlaylistInfoEmbed = (
     .map((item) => item.length)
     .reduce((acc, current) => current && (acc ? acc + current : 0 + current), 0)
 
-  const embed = new MessageEmbed()
-    .setColor('#00A455')
+  const embed = createBaseEmbed('GREEN')
     .setTitle(playlist.title)
     .setURL(playlist.url)
     .setAuthor({
@@ -40,10 +40,6 @@ export const createPlaylistInfoEmbed = (
         inline: true,
       }
     )
-    .setTimestamp()
-    .setFooter({
-      text: 'Powered by DELAMAIN',
-    })
 
   return embed
 }

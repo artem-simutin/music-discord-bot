@@ -1,14 +1,9 @@
-import { MessageEmbed } from 'discord.js'
+import { createBaseEmbed } from '../../helpers/createBaseEmbed'
 
 export const createLookingForSong = (request: string) => {
-  const embed = new MessageEmbed()
-    .setColor('#FFFFFF')
+  const embed = createBaseEmbed('WHITE')
     .setTitle(':mag_right:  Looking for song: ' + request)
     .setURL(request)
-    .setTimestamp()
-    .setFooter({
-      text: 'Powered by DELAMAIN',
-    })
 
   return embed
 }

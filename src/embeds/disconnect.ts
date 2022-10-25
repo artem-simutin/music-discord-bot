@@ -1,13 +1,9 @@
-import { MessageEmbed } from 'discord.js'
+import { createBaseEmbed } from '../helpers/createBaseEmbed'
 
 export const createDisconnectEmbed = () => {
-  const embed = new MessageEmbed()
-    .setColor('#000000')
-    .setTitle(':electric_plug:  Disconnected!  :electric_plug: ')
-    .setTimestamp()
-    .setFooter({
-      text: 'Powered by DELAMAIN',
-    })
+  const embed = createBaseEmbed('DARK_BUT_NOT_BLACK').setTitle(
+    ':electric_plug:  Disconnected!  :electric_plug: '
+  )
 
   return embed
 }
