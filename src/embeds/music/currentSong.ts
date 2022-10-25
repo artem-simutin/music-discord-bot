@@ -1,7 +1,8 @@
-import { Message, MessageEmbed } from 'discord.js'
-import { parseDuration } from '../../services/parceDuration'
+import { Message } from 'discord.js'
+import { parseDuration } from '../../services/parseDuration'
 import { formatToKMB } from '../../services/formatToKMB'
 import { Song } from '../../structures/song'
+import { createBaseEmbed } from '../../helpers/createBaseEmbed'
 
 export const createCurrentSongEmbed = (song: Song, message: Message) => {
   let authorImage: string | undefined = undefined
@@ -10,8 +11,7 @@ export const createCurrentSongEmbed = (song: Song, message: Message) => {
     authorImage = message.author.avatarURL() as string
   }
 
-  const embed = new MessageEmbed()
-    .setColor('#FFFFFF')
+  const embed = createBaseEmbed('WHITE')
     .setTitle(song.title || 'No title!')
     .setURL(song.url)
     .setAuthor({
@@ -31,15 +31,16 @@ export const createCurrentSongEmbed = (song: Song, message: Message) => {
         inline: true,
       },
       {
-        name: ':eye:  Views',
+        name: ':eye: Views',
         value: formatToKMB(song.views),
+        inline: true,
+      },
+      {
+        name: ':calendar_spiral: Publish date',
+        value: song.publishDate || '',
         inline: true,
       }
     )
-    .setTimestamp()
-    .setFooter({
-      text: 'Powered by DELAMAIN',
-    })
 
   return embed
 }

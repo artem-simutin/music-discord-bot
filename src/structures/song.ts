@@ -9,6 +9,7 @@ export class Song {
   length: number
   views: number
   isLive: boolean
+  publishDate: string | undefined
 
   constructor(songInfo: InfoData) {
     this.title = songInfo.video_details.title
@@ -19,5 +20,6 @@ export class Song {
     this.thumbnail = songInfo.video_details.thumbnails[0]
     this.views = songInfo.video_details.views
     this.isLive = songInfo.video_details.live
+    this.publishDate = songInfo.video_details.uploadedAt
   }
 }
