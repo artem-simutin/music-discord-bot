@@ -7,7 +7,7 @@
   "license": "ISC",
   "scripts": {
     "heroku": "npm install node@latest --save-exact && npm install pm2 -g",
-    "start": "pm2 start build/src/main.js --attach",
+    "start": "yarn build && pm2 start build/src/main.js --attach",
     "dev": "nodemon",
     "prebuild": "rm -rf build",
     "build": "tsc",
@@ -37,6 +37,7 @@
     "@typescript-eslint/parser": "^4.31.1",
     "eslint": "^7.32.0",
     "nodemon": "^2.0.12",
+    "pm2": "^5.2.2",
     "typescript": "^4.4.3"
   }
 }
