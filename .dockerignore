@@ -1,0 +1,46 @@
+# flyctl launch added from .gitignore
+# node_modules
+**/node_modules
+
+# IDE's files
+**/.vscode
+**/.idea
+
+# ENV
+**/.env
+
+# LOCK files
+**/package-lock.json
+**/yarn.lock
+
+# Logs
+**/yarn-error.log
+
+
+# Build
+**/build
+**/dist
+
+# flyctl launch added from node_modules/@discordjs/opus/.gitignore
+# Packages
+node_modules/@discordjs/opus/**/node_modules
+
+# Log files
+node_modules/@discordjs/opus/**/logs
+node_modules/@discordjs/opus/**/*.log
+node_modules/@discordjs/opus/**/npm-debug.log*
+
+# Runtime data
+node_modules/@discordjs/opus/**/pids
+node_modules/@discordjs/opus/**/*.pid
+node_modules/@discordjs/opus/**/*.seed
+
+# Miscellaneous
+node_modules/@discordjs/opus/**/.vscode
+node_modules/@discordjs/opus/**/.tmp
+node_modules/@discordjs/opus/**/build
+node_modules/@discordjs/opus/**/build-tmp*
+node_modules/@discordjs/opus/**/include
+!node_modules/@discordjs/opus/**/deps/opus/include
+node_modules/@discordjs/opus/**/prebuild
+node_modules/@discordjs/opus/**/test
