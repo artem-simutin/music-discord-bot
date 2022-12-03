@@ -1,6 +1,6 @@
-# fly.toml file generated for delamain-discord-bot on 2022-12-03T11:44:42+02:00
+# fly.toml file generated for delamain-music-bot on 2022-12-03T19:41:52+02:00
 
-app = "delamain-discord-bot"
+app = "delamain-music-bot"
 kill_signal = "SIGINT"
 kill_timeout = 5
 processes = []
