@@ -3,8 +3,8 @@ import chalk from 'chalk'
 import config from '../../../config/config'
 import ExceptionHandler from './exceptionHandler'
 
-const BUILD_MODE = config.BUILD_MODE
-  ? config.BUILD_MODE
+const NODE_ENV = config.NODE_ENV
+  ? config.NODE_ENV
   : 'development (using "development" by default)'
 class Logger extends ExceptionHandler {
   /**
@@ -12,7 +12,7 @@ class Logger extends ExceptionHandler {
    * @returns boolean
    */
   private static isEnvironmentInProduction() {
-    if (config.BUILD_MODE === 'production') return true
+    if (config.NODE_ENV === 'production') return true
     return false
   }
 
@@ -105,12 +105,12 @@ class Logger extends ExceptionHandler {
 
   public static environment() {
     // Clean up the console before start only for dev mode
-    if (BUILD_MODE !== 'production') {
+    if (NODE_ENV !== 'production') {
       console.clear()
       Logger.dependencies()
     }
 
-    console.log(`Build mode: ${chalk.blue(BUILD_MODE)}`)
+    console.log(`Build mode: ${chalk.blue(NODE_ENV)}`)
   }
 }
 

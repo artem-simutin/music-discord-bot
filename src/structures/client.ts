@@ -6,7 +6,7 @@ import config from '../../config/config'
 import QueueAndPlayer from './queue'
 import Logger from '../services/loggers'
 
-const environment = config.BUILD_MODE ? config.BUILD_MODE : 'development'
+const environment = config.NODE_ENV ? config.NODE_ENV : 'development'
 
 const intents = new Discord.Intents([
   Discord.Intents.FLAGS.GUILDS,

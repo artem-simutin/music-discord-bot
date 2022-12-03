@@ -6,12 +6,11 @@
   "author": "statik-coder",
   "license": "ISC",
   "scripts": {
-    "heroku": "npm install node@18.7.0 --save-exact && npm install && npm install -g pm2",
-    "start": "pm2 start build/src/main.js --attach",
-    "dev": "nodemon",
     "prebuild": "rm -rf build",
     "build": "tsc",
-    "runbot": "ts-node ./src/main.ts"
+    "start:production": "cross-env NODE_ENV=production pm2 start build/src/main.js --attach",
+    "start:dev": "cross-env NODE_ENV=development nodemon",
+    "start:once": "cross-env NODE_ENV=development ts-node ./src/main.ts"
   },
   "dependencies": {
     "@discordjs/opus": "github:discordjs/opus",
@@ -24,12 +23,9 @@
     "ffmpeg": "^0.0.4",
     "ffmpeg-static": "^5.0.0",
     "inversify": "^5.1.1",
-    "libsodium": "^0.7.9",
-    "libsodium-wrappers": "^0.7.9",
-    "opusscript": "^0.0.8",
+    "libsodium-wrappers": "^0.7.10",
     "play-dl": "^1.9.4",
     "reflect-metadata": "^0.1.13",
-    "sodium": "^3.0.2",
     "typescript": "^4.8.4",
     "ytpl": "^2.2.3"
   },
@@ -38,6 +34,7 @@
     "@typescript-eslint/parser": "^4.31.1",
     "eslint": "^7.32.0",
     "nodemon": "^2.0.12",
-    "pm2": "^5.2.2"
+    "pm2": "^5.2.2",
+    "ts-node": "^10.9.1"
   }
 }

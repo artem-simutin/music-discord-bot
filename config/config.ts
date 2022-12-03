@@ -3,8 +3,10 @@ dotenv.config()
 
 export type EnvType = 'production' | 'development'
 
+console.log('env', process.env.NODE_ENV)
+
 const config = {
-  BUILD_MODE: process.env.BUILD_MODE as EnvType | undefined,
+  NODE_ENV: process.env.NODE_ENV as EnvType | undefined,
   token: process.env.BOT_TOKEN,
   prefix: '!!',
   botDisconnectTimeout: 300000,
