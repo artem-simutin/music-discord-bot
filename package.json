@@ -7,7 +7,7 @@
   "license": "ISC",
   "scripts": {
     "heroku": "npm install node@18.7.0 --save-exact && npm install && npm install -g pm2",
-    "start": "npm run build && pm2 start build/src/main.js --attach",
+    "start": "pm2 start build/src/main.js --attach",
     "dev": "nodemon",
     "prebuild": "rm -rf build",
     "build": "tsc",

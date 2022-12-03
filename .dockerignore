@@ -18,7 +18,7 @@
 
 
 # Build
-**/build
+# **/build
 **/dist
 
 # flyctl launch added from node_modules/@discordjs/opus/.gitignore
